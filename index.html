@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" id="htmlRoot">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Dhofar Smart Duty Rota</title>
+<style>
+  :root {
+    --primary: #1565c0; --primary-dark: #0d47a1; --accent: #2e7d32;
+    --border-color: #b0bec5; --header-bg: #e3f2fd; --subtle-bg: #f8fafc;
+    --friday-bg: #ffebee; --saturday-bg: #fff8e1; --night-bg: #ede7f6;
+  }
+  * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+  body { margin: 0; padding: 12px; background: #eceff1; color: #263238; font-size: 13px; }
+
+  .no-print {
+    background: #fff; padding: 12px 18px; border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 12px;
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;
+  }
+  .btn { padding: 7px 14px; font-weight: 600; border: none; border-radius: 5px; cursor: pointer; background: var(--primary); color: #fff; transition: background 0.2s; }
+  .btn:hover { background: var(--primary-dark); }
+  .btn-success { background: var(--accent); }
+  .btn-danger { background: #c62828; }
+  .btn-outline { background: #fff; color: #37474f; border: 1px solid #b0bec5; }
+  .btn-lang { background: #37474f; }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-sm { padding: 4px 10px; font-size: 11.5px; }
+
+  .period-tabs { display: flex; flex-wrap: wrap; gap: 4px; background: #fff; border-radius: 8px; padding: 8px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .period-tabs button { padding: 6px 12px; border: 1px solid #cfd8dc; background: #f5f7f8; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 12px; color: #455a64; position:relative; }
+  .period-tabs button.active { background: var(--primary); color: #fff; border-color: var(--primary-dark); }
+  .period-tabs button.tab-codes { background: #ede7f6; border-color: #b39ddb; color: #4527a0; }
+  .period-tabs button.tab-codes.active { background: #5e35b1; color: #fff; }
+  .period-tabs button.tab-summary { background: #fff3e0; border-color: #ffcc80; color: #e65100; }
+  .period-tabs button.tab-summary.active { background: #ef6c00; color: #fff; }
+  .period-tabs .sep { width:1px; background:#dde3e6; margin:2px 4px; }
+  .lock-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-inline-end:4px; }
+  .lock-dot.locked { background:#2e7d32; }
+  .lock-dot.unlocked { background:#e65100; }
+
+  .rota-sheet { background: #fff; padding: 16px; border-radius: 6px; box-shadow: 0 3px 12px rgba(0,0,0,0.07); overflow-x: auto; }
+
+  .rota-header { display: grid; grid-template-columns: 1.2fr 1.8fr 1.2fr; border: 2px solid #37474f; padding: 10px; margin-bottom: 8px; background: #fafafa; border-radius: 4px; gap: 8px; align-items: center; }
+  .header-group { display: flex; flex-direction: column; gap: 4px; }
+  .header-field { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .header-field label { font-weight: bold; min-width: 90px; color: #37474f; }
+  .header-field input, .header-field select { padding: 4px 6px; border: 1px solid #cfd8dc; border-radius: 4px; font-size: 12px; flex:1; }
+  .header-title { text-align: center; }
+  .header-title h2 { margin: 0; font-size: 19px; color: var(--primary-dark); }
+  .header-title h3 { margin: 2px 0 0 0; font-size: 14px; color: #455a64; }
+
+  /* Staff panel inside period */
+  .staff-panel { border:1px solid #cfd8dc; border-radius:6px; margin-bottom:12px; overflow:hidden; }
+  .staff-panel-head { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding:8px 12px; background:#f5f7f8; }
+  .staff-panel-body { padding:10px 12px; }
+  .staff-status { font-size:12px; padding: 4px 10px; border-radius: 12px; font-weight:600; }
+  .staff-status.dirty { background:#fff3e0; color:#e65100; }
+  .staff-status.clean { background:#e8f5e9; color:#1b5e20; }
+  table.staff-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  table.staff-table th, table.staff-table td { border:1px solid #cfd8dc; padding:5px; }
+  table.staff-table th { background:#cfd8dc; }
+  table.staff-table input[type=text] { width:100%; border:1px solid #dde3e6; border-radius:4px; padding:4px 6px; }
+  table.staff-table input[type=checkbox] { width:18px; height:18px; }
+  table.staff-table input:disabled { background:#f0f2f3; color:#78888f; border-color:transparent; }
+
+  table.rota-table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: center; }
+  table.rota-table th, table.rota-table td { border: 1px solid #b0bec5; padding: 3px 2px; min-width: 25px; height: 24px; }
+  table.rota-table th { background: #cfd8dc; color: #263238; font-weight: bold; user-select: none; }
+
+  .col-sn { width: 30px; } .col-des { width: 65px; } .col-stno { width: 65px; }
+  .col-name { width: 150px; text-align: right !important; padding-right: 6px !important; }
+  html[dir="ltr"] .col-name { text-align: left !important; padding-left: 6px !important; padding-right: 0 !important; }
+
+  .th-fri, .td-fri { background-color: var(--friday-bg) !important; }
+  .th-sat, .td-sat { background-color: var(--saturday-bg) !important; }
+  .td-night { background-color: var(--night-bg); }
+
+  td input { width: 100%; border: none; background: transparent; text-align: center; font-size: 11px; font-weight: 600; outline: none; text-transform: uppercase; }
+  td input.name-input { text-align: inherit; text-transform: none; }
+  td input:focus { background: #e0f2fe; }
+
+  .th-stat { background: #b0bec5 !important; font-size: 10px; }
+  .stat-val { font-weight: 700; color: #0d47a1; background: #f1f8e9; }
+  .val-overtime { color: #b71c1c; font-weight: bold; }
+
+  .rota-footer { margin-top: 14px; border-top: 2px solid #455a64; padding-top: 8px; display: grid; grid-template-columns: 2fr 1fr 1fr; font-size: 11px; gap: 15px; }
+
+  .codes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 12px; }
+  .codes-grid .cat { border:1px solid #dde3e6; border-radius:6px; padding:10px; background:#fafcfd; }
+  .codes-grid .cat h3 { margin:0 0 6px; font-size:13px; color:var(--primary-dark); border-bottom:2px solid #ffb300; padding-bottom:4px; }
+  .codes-grid table { width:100%; font-size:12px; border-collapse:collapse; }
+  .codes-grid td { border-bottom:1px dashed #e0e6e9; padding:3px 4px; }
+  .codes-grid td.code { font-weight:700; color:#0d47a1; width:50px; }
+  .codes-grid td.hrs { text-align: inherit; color:#607580; width:36px; font-weight:600; }
+
+  table.summary-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
+  table.summary-table th, table.summary-table td { border: 1px solid #b0bec5; padding: 5px; }
+  table.summary-table th { background: #cfd8dc; }
+  table.summary-table td.name-cell { text-align: right; font-weight: 600; }
+  html[dir="ltr"] table.summary-table td.name-cell { text-align: left; }
+  table.summary-table td.total-cell { background:#f1f8e9; font-weight:700; color:#0d47a1; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .no-print, .period-tabs, .staff-panel { display: none !important; }
+    .rota-sheet { box-shadow: none; padding: 0; width: 100%; }
+    table.rota-table { font-size: 8.5px; }
+    table.rota-table th, table.rota-table td { height: 18px; padding: 1px; }
+    @page { size: landscape; margin: 6mm; }
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+    <button class="btn btn-lang" onclick="toggleLang()" id="btnLang">EN / عربي</button>
+    <label id="lblStartDate"><input type="date" id="startDatePicker"> </label>
+  </div>
+  <div style="display: flex; gap: 8px; flex-wrap:wrap;">
+    <button class="btn btn-danger" onclick="resetAllData()" id="btnReset">إعادة ضبط البيانات بالكامل</button>
+    <button class="btn btn-outline" onclick="exportCSV()" id="btnExport">تصدير CSV</button>
+    <button class="btn btn-outline" onclick="exportJSON()" id="btnExportJson">Export JSON</button>
+    <label class="btn btn-outline" style="cursor:pointer;">
+      <span id="btnImportJson">Import JSON</span>
+      <input type="file" accept="application/json" style="display:none" onchange="importJSON(event)">
+    </label>
+    <button class="btn btn-success" onclick="saveToStorage()" id="btnSave">حفظ تلقائي</button>
+    <button class="btn" onclick="window.print()" id="btnPrint">طباعة / تصدير PDF</button>
+  </div>
+</div>
+
+<div class="period-tabs no-print" id="periodTabs"></div>
+
+<!-- CODES TAB -->
+<div class="rota-sheet hidden" id="codesView">
+  <h2 id="codesTitle" style="color:var(--primary-dark);margin-top:0;">دليل الرموز وساعات العمل المعتمدة</h2>
+  <div class="codes-grid" id="codesGrid"></div>
+</div>
+
+<!-- PERIOD TAB -->
+<div class="rota-sheet hidden" id="periodView">
+  <div class="rota-header">
+    <div class="header-group">
+      <div class="header-field"><label id="lblGov">المحافظة:</label><input type="text" id="govName" value="Dhofar / ظفار"></div>
+      <div class="header-field"><label id="lblWilayat">الولاية:</label><select id="wilayatSelect"></select></div>
+      <div class="header-field"><label id="lblInst">المستشفى:</label><select id="instSelect"></select></div>
+      <div class="header-field hidden" id="instCustomWrap"><label>&nbsp;</label><input type="text" id="instCustom" placeholder=""></div>
+    </div>
+    <div class="header-title">
+      <h2 id="hMinistry">المديرية العامة للخدمات الصحية بمحافظة ظفار</h2>
+      <h3 id="rotaTitle">Nursing Duty Rota (جدول المناوبات والدوام)</h3>
+      <div style="margin-top: 4px; font-weight: bold; color: #455a64; font-size: 11px;">
+        <span id="lblPeriodOf">الفترة</span> <span id="lblCurPeriodNum">1</span> —
+        <span id="lblFrom">من:</span> <span id="lblDateFrom">-</span>
+        <span id="lblTo">إلى:</span> <span id="lblDateTo">-</span>
+        &nbsp;|&nbsp;
+        <label><input type="checkbox" id="ramadanMode"> <span id="lblRamadan">نظام شهر رمضان المبارك (لهذه الفترة)</span></label>
+      </div>
+    </div>
+    <div class="header-group">
+      <div class="header-field"><label id="lblDept">القسم:</label><input type="text" id="deptName" value=""></div>
+      <div class="header-field"><label id="lblDailyHrs">ساعات الدوام اليومية:</label><input type="number" id="dailyHours" value="7" style="width: 50px;"></div>
+      <div class="header-field"><label id="lblWeeklyHrs">ساعات الأسبوع:</label><input type="number" id="weeklyHours" value="35" style="width: 50px;"></div>
+    </div>
+  </div>
+
+  <!-- PER-PERIOD STAFF PANEL -->
+  <div class="staff-panel">
+    <div class="staff-panel-head">
+      <div>
+        <span class="lock-dot" id="lockDot"></span>
+        <strong id="staffPanelTitle">قائمة موظفي هذه الفترة</strong>
+        <span class="staff-status" id="staffStatus" style="margin-inline-start:8px;"></span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-sm btn-outline" id="btnToggleMasterView" onclick="toggleMasterView()"></button>
+        <button class="btn btn-sm btn-outline" id="btnToggleStaffPanel" onclick="toggleStaffPanelOpen()"></button>
+        <button class="btn btn-sm" id="btnUnlockPeriod" onclick="unlockPeriodStaff()"></button>
+        <button class="btn btn-sm" id="btnAddStaff" onclick="addStaffRow()"></button>
+        <button class="btn btn-sm btn-success" id="btnCommitStaff" onclick="commitPeriodStaff()"></button>
+      </div>
+    </div>
+    <div class="staff-panel-body" id="staffPanelBody">
+      <p class="small" id="staffHint" style="color:#607580;margin-top:0;"></p>
+      <table class="staff-table" id="staffTable">
+        <thead>
+          <tr>
+            <th style="width:40px" id="thStaffActive">✔</th>
+            <th style="width:40px" id="thStaffSn">م</th>
+            <th style="width:90px" id="thStaffDes">الوظيفة</th>
+            <th style="width:90px" id="thStaffStno">الرقم</th>
+            <th id="thStaffName">الاسم</th>
+            <th style="width:70px" id="thStaffDel">حذف</th>
+          </tr>
+        </thead>
+        <tbody id="staffTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <table class="rota-table" id="rotaTable">
+    <thead>
+      <tr id="dateNumRow">
+        <th rowspan="2" class="col-sn" id="thSn">م</th>
+        <th rowspan="2" class="col-des" id="thDes">الوظيفة</th>
+        <th rowspan="2" class="col-stno" id="thStno">الرقم</th>
+        <th rowspan="2" class="col-name" id="thName">الاسم الثلاثي مع القبيلة</th>
+        <th colspan="2" class="th-stat" id="thActualWork">العمل الفعلي</th>
+        <th rowspan="2" class="th-stat" id="thHrsDue">ساعات مستحقة</th>
+        <th colspan="3" class="th-stat" id="thOT">العمل الإضافي</th>
+        <th rowspan="2" class="th-stat" id="thOldPo">رصيد سابق</th>
+        <th rowspan="2" class="th-stat" id="thFinalPo">الرصيد النهائي</th>
+      </tr>
+      <tr id="dayNameRow">
+        <th class="th-stat" id="thHrs">ساعات</th>
+        <th class="th-stat" id="thDays">أيام</th>
+        <th class="th-stat" id="thOtNormal">عادي</th>
+        <th class="th-stat" id="thOtRamadan">رمضان</th>
+        <th class="th-stat" id="thOtTotal">الإجمالي</th>
+      </tr>
+      <tr id="officialHoursRow" style="background:#f1f5f9; font-weight: bold;">
+        <td colspan="4" style="text-align: inherit; padding-inline-start: 8px;" id="lblOfficialHours">الساعات الرسمية المقررة:</td>
+        <td id="totOfficialHours" colspan="7" style="color:var(--primary-dark)">140</td>
+      </tr>
+    </thead>
+    <tbody id="rotaBody"></tbody>
+    <tfoot>
+      <tr id="shiftCountsM" style="background:#e8f5e9; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountM">مجموع الصباحي (Morning):</td><td colspan="7"></td></tr>
+      <tr id="shiftCountsA" style="background:#e0f7fa; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountA">مجموع المسائي (Afternoon):</td><td colspan="7"></td></tr>
+      <tr id="shiftCountsE" style="background:#fff3e0; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountE">مجموع الليلي الأول (Evening):</td><td colspan="7"></td></tr>
+      <tr id="shiftCountsN" style="background:#ede7f6; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountN">مجموع السهر (Night):</td><td colspan="7"></td></tr>
+    </tfoot>
+  </table>
+
+  <div class="rota-footer">
+    <div>
+      <div><strong id="lblNotesTitle">ملاحظات الإعداد والاعتماد:</strong></div>
+      <div style="margin-top: 4px; color: #546e7a;" id="lblNotesBody"></div>
+    </div>
+    <div>
+      <div><strong id="lblPreparedBy">إعداد المنسق / المسؤول:</strong> .............................</div>
+      <div style="margin-top: 6px;"><strong id="lblDate">التاريخ:</strong> <span id="lblPreparedDate"></span></div>
+    </div>
+    <div>
+      <div><strong id="lblApproval">اعتماد رئيس القسم:</strong> .............................</div>
+      <div style="margin-top: 6px;"><strong id="lblStamp">الختم الرسمي:</strong> .............................</div>
+    </div>
+  </div>
+</div>
+
+<!-- SUMMARY TAB -->
+<div class="rota-sheet hidden" id="summaryView">
+  <h2 id="summaryTitle" style="color:var(--primary-dark)">الملخص السنوي</h2>
+  <p class="small" id="summaryHint" style="color:#607580"></p>
+  <div style="overflow-x:auto"><table class="summary-table" id="summaryTable"></table></div>
+</div>
+
+<script>
+/* ================= DHOFAR REFERENCE DATA ================= */
+const DHOFAR_WILAYATS = [
+  { key:'salalah', en:'Salalah', ar:'صلالة' },
+  { key:'taqah', en:'Taqah', ar:'طاقة' },
+  { key:'mirbat', en:'Mirbat', ar:'مرباط' },
+  { key:'sadah', en:'Sadah', ar:'سدح' },
+  { key:'thumrait', en:'Thumrait', ar:'ثمريت' },
+  { key:'muqshin', en:'Muqshin', ar:'مقشن' },
+  { key:'shalim', en:'Shalim Wa Juzur Al Hallaniyat', ar:'شليم وجزر الحلانيات' },
+  { key:'rakhyut', en:'Rakhyut', ar:'رخيوت' },
+  { key:'dhalkut', en:'Dhalkut', ar:'ضلكوت' },
+  { key:'mazyunah', en:'Al Mazyona', ar:'المزيونة' }
+];
+const DHOFAR_INSTITUTIONS = {
+  salalah: [
+    { en:'Sultan Qaboos Hospital - Salalah', ar:'مستشفى السلطان قابوس بصلالة' },
+    { en:'Salalah Polyclinic', ar:'مجمع صلالة الصحي' },
+    { en:'As Saada Health Center', ar:'مركز السعادة الصحي' },
+    { en:'Al Dahareez Health Center', ar:'مركز الدهاريز الصحي' },
+    { en:'Awqad Health Center', ar:'مركز عوقد الصحي' },
+    { en:'Hejayf Health Center', ar:'مركز حجيف الصحي' },
+    { en:'Qayrun Hayiti Health Center', ar:'مركز قيرون حيريتي الصحي' },
+    { en:'Salalah Al Gharbia Health Center', ar:'مركز صلالة الغربية الصحي' },
+    { en:'Salalah Al Jadidah Health Center', ar:'مركز صلالة الجديدة الصحي' },
+    { en:'Titam Health Center', ar:'مركز طيطام الصحي' }
+  ],
+  taqah: [
+    { en:'Taqah Hospital', ar:'مستشفى طاقة' },
+    { en:'Madinat Al Haqq Hospital', ar:'مستشفى مدينة الحق' },
+    { en:'Jibjat Health Center', ar:'مركز جبجات الصحي' }
+  ],
+  mirbat: [
+    { en:'Mirbat Hospital', ar:'مستشفى مرباط' },
+    { en:'Tawi Atayr Health Center', ar:'مركز طوي أعتير الصحي' }
+  ],
+  sadah: [
+    { en:'Sadah Hospital', ar:'مستشفى سدح' },
+    { en:'Hasik Health Center', ar:'مركز حاسك الصحي' },
+    { en:'Hadbin Health Center', ar:'مركز حدبين الصحي' },
+    { en:'Sawb Health Center', ar:'مركز صوب الصحي' }
+  ],
+  thumrait: [
+    { en:'Thumrayt Hospital', ar:'مستشفى ثمريت الصحي' },
+    { en:'Al Hashman Health Center', ar:'مركز الحشمان الصحي' },
+    { en:'Bithnah Health Center', ar:'مركز بيثنة الصحي' },
+    { en:'Mudayy Health Center', ar:'مركز مضي الصحي' },
+    { en:'Dhahbun Health Center', ar:'مركز ذهبون الصحي' },
+    { en:"Aiboot '2' Health Center", ar:'مركز عيبوت "2" الصحي' },
+    { en:'Barbazoom Health Center', ar:'مركز بربزوم الصحي' }
+  ],
+  muqshin: [
+    { en:'Muqshin Hospital', ar:'مستشفى مقشن' },
+    { en:'Al Mashash Health Center', ar:'مركز المشاش الصحي' },
+    { en:'Marsawdad Health Center', ar:'مركز مرسودد الصحي' }
+  ],
+  shalim: [
+    { en:'Shalim Hospital', ar:'مستشفى شليم' },
+    { en:'Al Hallaniyat Health Center', ar:'مركز الحلانيات الصحي' },
+    { en:'Ashuwaymiyah Health Center', ar:'مركز الشويمية الصحي' },
+    { en:'Sharbthat Health Center', ar:'مركز شربثات الصحي' },
+    { en:'Dimit Health Center', ar:'مركز ديميت الصحي' },
+    { en:'Kubut Health Center', ar:'مركز كبوت الصحي' }
+  ],
+  rakhyut: [
+    { en:'Rakhyut Hospital', ar:'مستشفى رخيوت' },
+    { en:'Shahb Asayb Health Center', ar:'مركز شهب أصعيب الصحي' }
+  ],
+  dhalkut: [
+    { en:'Dhalkut Hospital', ar:'مستشفى ضلكوت' },
+    { en:'Khadrafi Health Center', ar:'مركز خضرافي الصحي' }
+  ],
+  mazyunah: [
+    { en:'Al Mazyona Hospital', ar:'مستشفى المزيونة' },
+    { en:'Harweeb Health Center', ar:'مركز هرويب الصحي' },
+    { en:'Andhat Health Center', ar:'مركز أندات الصحي' },
+    { en:'Toshinat Health Center', ar:'مركز توسنات الصحي' },
+    { en:'Mitin Health Center', ar:'مركز ميتن الصحي' },
+    { en:'Matoura & Jijwal Health Center', ar:'مركز مطورة وججوال الصحي' }
+  ]
+};
+const OTHER_KEY = '__other__';
+
+/* ================= TRANSLATIONS ================= */
+const TEXT = {
+  ar: {
+    pageTitle:"Dhofar Smart Duty Rota", lblStartDate:"تاريخ بداية الفترة 1:",
+    btnReset:"إعادة ضبط البيانات بالكامل", btnExport:"تصدير CSV", btnExportJson:"تصدير JSON", btnImportJson:"استيراد JSON",
+    btnSave:"حفظ تلقائي", btnPrint:"طباعة / تصدير PDF", btnLang:"English",
+    lblGov:"المحافظة:", lblWilayat:"الولاية:", lblInst:"المؤسسة الصحية:", lblDept:"القسم:",
+    lblDailyHrs:"ساعات الدوام اليومية:", lblWeeklyHrs:"ساعات الأسبوع:",
+    hMinistry:"المديرية العامة للخدمات الصحية بمحافظة ظفار", rotaTitle:"جدول المناوبات والدوام (Nursing Duty Rota)",
+    lblPeriodOf:"الفترة", lblFrom:"من:", lblTo:"إلى:", lblRamadan:"نظام شهر رمضان المبارك (لهذه الفترة)",
+    thSn:"م", thDes:"الوظيفة", thStno:"الرقم", thName:"الاسم الثلاثي مع القبيلة",
+    thActualWork:"العمل الفعلي", thHrsDue:"ساعات مستحقة", thOT:"العمل الإضافي",
+    thOldPo:"رصيد سابق", thFinalPo:"الرصيد النهائي",
+    thHrs:"ساعات", thDays:"أيام", thOtNormal:"عادي", thOtRamadan:"رمضان", thOtTotal:"الإجمالي",
+    lblOfficialHours:"الساعات الرسمية المقررة:",
+    lblCountM:"مجموع الصباحي (Morning):", lblCountA:"مجموع المسائي (Afternoon):",
+    lblCountE:"مجموع الليلي الأول (Evening):", lblCountN:"مجموع السهر (Night):",
+    lblNotesTitle:"ملاحظات الإعداد والاعتماد:",
+    lblNotesBody:"- إعداد وبرمجة: د. إدريس آل جمعة - المديرية العامة للخدمات الصحية بمحافظة ظفار <br>- للتواصل: alwaya1987@gmail.com| idris.aljumah@moh.gov.om",
+    lblPreparedBy:"إعداد المنسق / المسؤول:", lblDate:"التاريخ:", lblApproval:"اعتماد رئيس القسم:", lblStamp:"الختم الرسمي:",
+    summaryTitle:"الملخص السنوي لجميع الموظفين الذين ظهروا في أي فترة",
+    summaryHint:"كل موظف يظهر في الفترات التي كان مدرجًا فيها فقط؛ الخلايا الفارغة تعني أنه لم يكن ضمن قائمة تلك الفترة.",
+    staffPanelTitle:"قائمة موظفي هذه الفترة", btnToggleShow:"عرض القائمة", btnToggleHide:"إخفاء القائمة",
+    btnUnlock:"🔓 فتح القفل للتعديل", btnAddStaff:"+ إضافة موظف", btnCommitStaff:"💾 حفظ وقفل قائمة هذه الفترة",
+    thStaffActive:"✔", thStaffSn:"م", thStaffDes:"الوظيفة", thStaffStno:"الرقم", thStaffName:"الاسم", thStaffDel:"حذف",
+    staffHint:'حدد الموظفين المفعّلين لهذه الفترة بوضع علامة ✔. عند القفل، سيتم تجميد بيانات موظفي هذه الفترة.',
+    masterStaffHint:'القائمة الرئيسية الشاملة لجميع الموظفين. أي تعديل ينعكس فورًا على الفترات غير المقفلة.',
+    btnShowMaster:"📂 القائمة الرئيسية للموظفين", btnHideMaster:"📋 قائمة هذه الفترة",
+    masterPanelTitle:"القائمة الرئيسية المركزية للموظفين",
+    codesTitle:"دليل الرموز وساعات العمل المعتمدة",
+    tabCodes:"📘 الرموز", tabSummary:"📊 الملخص", period:"الفترة",
+    hoursUnit:"ساعة", namePlaceholder:i=>`اسم الموظف ${i}`,
+    confirmDeleteStaff:"هل تريد حذف هذا الموظف نهائياً من هذه الفترة والفترات القادمة؟ (سيتم الاحتفاظ ببياناته في الفترات السابقة)",
+    confirmReset:"هل أنت تأكد من إعادة ضبط كافة البيانات وإلغاء جميع الإدخالات؟ لن يمكنك التراجع عن هذا الإجراء.",
+    confirmCommit:"سيتم قفل قائمة موظفي هذه الفترة (الفترة {n}) فقط وتثبيت بياناتهم. متابعة؟",
+    confirmUnlock:"فتح القفل يسمح بتعديل اختيار موظفي هذه الفترة. متابعة؟",
+    savedMsg:"تم حفظ بيانات الجدول بنجاح على المتصفح!", committedMsg:"تم قفل قائمة موظفي هذه الفترة ✓",
+    dirty:"غير مقفلة - قابلة للتعديل", clean:"مقفلة ✓", activeCount: (a,t)=>`مفعّل: ${a} من ${t}`,
+    otherOption:"أخرى (كتابة يدوية)", customInstPlaceholder:"اكتب اسم المؤسسة الصحية",
+    catNames:{ "Normal Duty":"الدوام الاعتيادي", "Ramadan":"رموز شهر رمضان", "Regular Leave":"الإجازات المنتظمة",
+      "Irregular Leave":"الإجازات والأعذار غير المنتظمة", "Other Institutions":"العمل في مؤسسات أخرى",
+      "Exit":"الخروج من المؤسسة", "Rest / Off":"الراحة والعطلات" }
+  },
+  en: {
+    pageTitle:"Dhofar Smart Duty Rota", lblStartDate:"Period 1 start date:",
+    btnReset:"Reset All Data", btnExport:"Export CSV", btnExportJson:"Export JSON", btnImportJson:"Import JSON",
+    btnSave:"Save", btnPrint:"Print / PDF", btnLang:"العربية",
+    lblGov:"Governorate:", lblWilayat:"Wilayat:", lblInst:"Health Institution:", lblDept:"Department:",
+    lblDailyHrs:"Daily hours:", lblWeeklyHrs:"Weekly hours:",
+    hMinistry:"Sultanate of Oman - Ministry of Health", rotaTitle:"Nursing Duty Rota",
+    lblPeriodOf:"Period", lblFrom:"From:", lblTo:"To:", lblRamadan:"Ramadan schedule (this period)",
+    thSn:"S.N", thDes:"Desig.", thStno:"St.No", thName:"Full Name",
+    thActualWork:"Actual Work", thHrsDue:"Hrs Due", thOT:"Overtime",
+    thOldPo:"Old PO", thFinalPo:"Final Balance",
+    thHrs:"Hrs", thDays:"Days", thOtNormal:"Normal", thOtRamadan:"Ramadan", thOtTotal:"Total",
+    lblOfficialHours:"Official required hours:",
+    lblCountM:"Morning shift total:", lblCountA:"Afternoon shift total:",
+    lblCountE:"Evening shift total:", lblCountN:"Night shift total:",
+    lblNotesTitle:"Preparation & Approval Notes:",
+    lblNotesBody:"- Designed by: Dr.Idris Aal Jumaa - Dhofar DGHS <br>- Contact: Alwaya1987@gmail.com",
+    lblPreparedBy:"Prepared by / Coordinator:", lblDate:"Date:", lblApproval:"Approved by Head of Dept.:", lblStamp:"Official Stamp:",
+    summaryTitle:"Yearly Summary of every staff member who appeared in any period",
+    summaryHint:"Each staff member's row only shows hours for periods they were rostered in; blank cells mean they weren't on that period's list.",
+    staffPanelTitle:"Staff list for this period", btnToggleShow:"Show list", btnToggleHide:"Hide list",
+    btnUnlock:"🔓 Unlock to edit", btnAddStaff:"+ Add Staff", btnCommitStaff:"💾 Save & Lock this period's list",
+    thStaffActive:"✔", thStaffSn:"S.N", thStaffDes:"Desig.", thStaffStno:"St.No", thStaffName:"Name", thStaffDel:"Delete",
+    staffHint:'Tick active staff for this period. Locking freezes a snapshot for this period.',
+    masterStaffHint:'Master Directory for all staff. Updates to Name/ID mirror to unlocked periods automatically.',
+    btnShowMaster:"📂 Master Directory View", btnHideMaster:"📋 Period Roster View",
+    masterPanelTitle:"Central Master Staff Directory",
+    codesTitle:"Duty & Leave Codes Reference",
+    tabCodes:"📘 Codes", tabSummary:"📊 Summary", period:"Period",
+    hoursUnit:"hrs", namePlaceholder:i=>`Staff name ${i}`,
+    confirmDeleteStaff:"Are you sure you want to delete this staff member from this and future periods? (Previous periods will keep their historical record)",
+    confirmReset:"Are you sure you want to reset all data? This will clear all entries permanently.",
+    confirmCommit:"This will lock and freeze the staff roster for Period {n}. Continue?",
+    confirmUnlock:"Unlocking allows modifying active staff selection for this period. Continue?",
+    savedMsg:"Rota data saved successfully in this browser!", committedMsg:"This period's staff list is locked ✓",
+    dirty:"Unlocked - editable", clean:"Locked ✓", activeCount:(a,t)=>`Active: ${a} of ${t}`,
+    otherOption:"Other (type manually)", customInstPlaceholder:"Type health institution name",
+    catNames:{ "Normal Duty":"Normal Duty", "Ramadan":"Ramadan Codes", "Regular Leave":"Regular Leave",
+      "Irregular Leave":"Irregular Leave / Excuse", "Other Institutions":"Other Institutions",
+      "Exit":"Exit", "Rest / Off":"Rest / Off" }
+  }
+};
+let LANG = 'ar';
+
+const DAYS = {
+  ar: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+  en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+};
+
+const CAT_ORDER = ["Normal Duty","Ramadan","Regular Leave","Irregular Leave","Other Institutions","Exit","Rest / Off"];
+
+const CODES = {
+  M:{h:7,c:"Normal Duty",en:"Morning (Main Shift)",ar:"صباحي (الوردية الرئيسية)"}, M1:{h:7,c:"Normal Duty",en:"Morning (1st shift)",ar:"صباحي (وردية 1)"},
+  M2:{h:7,c:"Normal Duty",en:"Morning (2nd shift)",ar:"صباحي (وردية 2)"}, MC:{h:7,c:"Normal Duty",en:"Morning Call",ar:"مناداة صباحية"},
+  M8:{h:8,c:"Normal Duty",en:"Morning (8h)",ar:"صباحي (8 س)"}, CE:{h:7,c:"Normal Duty",en:"Continue Education",ar:"تعليم مستمر"},
+  A:{h:7,c:"Normal Duty",en:"Afternoon (Main Shift)",ar:"مسائي (الوردية الرئيسية)"}, A1:{h:7,c:"Normal Duty",en:"Afternoon (1st shift)",ar:"مسائي (وردية 1)"},
+  A2:{h:7,c:"Normal Duty",en:"Afternoon (2nd shift)",ar:"مسائي (وردية 2)"}, A8:{h:8,c:"Normal Duty",en:"Afternoon (8h)",ar:"مسائي (8 س)"},
+  E:{h:7,c:"Normal Duty",en:"Evening (Main Shift)",ar:"ليلي أول (الوردية الرئيسية)"}, E1:{h:7,c:"Normal Duty",en:"Evening (1st shift)",ar:"ليلي أول (وردية 1)"},
+  E2:{h:7,c:"Normal Duty",en:"Evening (2nd shift)",ar:"ليلي أول (وردية 2)"}, E8:{h:8,c:"Normal Duty",en:"Evening (8h)",ar:"ليلي أول (8 س)"}, E10:{h:10,c:"Normal Duty",en:"Evening (10h)",ar:"ليلي أول (10 س)"},
+  N7:{h:7,c:"Normal Duty",en:"Night (7h)",ar:"سهر (7 س)"}, N8:{h:8,c:"Normal Duty",en:"Night (8h)",ar:"سهر (8 س)"}, N:{h:10,c:"Normal Duty",en:"Night (Main Shift)",ar:"سهر (الوردية الرئيسية)"},
+  MA:{h:14,c:"Normal Duty",en:"Morning & Afternoon",ar:"صباحي ومسائي"}, ME:{h:14,c:"Normal Duty",en:"Morning & Evening",ar:"صباحي وليلي أول"},
+  MN7:{h:14,c:"Normal Duty",en:"Morning & Night (14h)",ar:"صباحي وسهر (14 س)"}, MN:{h:17,c:"Normal Duty",en:"Morning & Night (17h)",ar:"صباحي وسهر (17 س)"},
+  AN:{h:17,c:"Normal Duty",en:"Afternoon & Night",ar:"مسائي وسهر"}, EN:{h:17,c:"Normal Duty",en:"Evening & Night",ar:"ليلي وسهر"},
+  HD:{h:12,c:"Normal Duty",en:"Half Day",ar:"نصف يوم"}, HD1:{h:12,c:"Normal Duty",en:"Half Day (1)",ar:"نصف يوم (1)"}, HD2:{h:12,c:"Normal Duty",en:"Half Day (2)",ar:"نصف يوم (2)"},
+  FD:{h:24,c:"Normal Duty",en:"Full Day",ar:"يوم كامل"}, FD1:{h:24,c:"Normal Duty",en:"Full Day (1)",ar:"يوم كامل (1)"}, FD2:{h:24,c:"Normal Duty",en:"Full Day (2)",ar:"يوم كامل (2)"},
+
+  RM1:{h:5,c:"Ramadan",en:"Morning (1st shift)",ar:"صباحي (وردية 1)"}, RM2:{h:5,c:"Ramadan",en:"Morning (2nd shift)",ar:"صباحي (وردية 2)"}, RM5:{h:5,c:"Ramadan",en:"Morning (Main)",ar:"صباحي (رئيسي)"},
+  MC5:{h:5,c:"Ramadan",en:"Morning Call",ar:"مناداة صباحية"}, RM6:{h:6,c:"Ramadan",en:"Morning (6h)",ar:"صباحي (6 س)"}, MC6:{h:6,c:"Ramadan",en:"Morning Call (6h)",ar:"مناداة صباحية (6 س)"},
+  RM7:{h:7,c:"Ramadan",en:"Morning (7h)",ar:"صباحي (7 س)"}, MC7:{h:7,c:"Ramadan",en:"Morning Call (7h)",ar:"مناداة صباحية (7 س)"}, RM8:{h:8,c:"Ramadan",en:"Morning (8h)",ar:"صباحي (8 س)"},
+  CE7:{h:7,c:"Ramadan",en:"Continue Education (7h)",ar:"تعليم مستمر (7 س)"}, CE5:{h:5,c:"Ramadan",en:"Continue Education (5h)",ar:"تعليم مستمر (5 س)"},
+  RA1:{h:5,c:"Ramadan",en:"Afternoon (1st shift)",ar:"مسائي (وردية 1)"}, RA2:{h:5,c:"Ramadan",en:"Afternoon (2nd shift)",ar:"مسائي (وردية 2)"}, RA5:{h:5,c:"Ramadan",en:"Afternoon (Main)",ar:"مسائي (رئيسي)"},
+  RA6:{h:6,c:"Ramadan",en:"Afternoon (6h)",ar:"مسائي (6 س)"}, RA7:{h:7,c:"Ramadan",en:"Afternoon (7h)",ar:"مسائي (7 س)"}, RA8:{h:8,c:"Ramadan",en:"Afternoon (8h)",ar:"مسائي (8 س)"},
+  RE1:{h:5,c:"Ramadan",en:"Evening (1st shift)",ar:"ليلي (وردية 1)"}, RE2:{h:5,c:"Ramadan",en:"Evening (2nd shift)",ar:"ليلي (وردية 2)"}, RE5:{h:5,c:"Ramadan",en:"Evening (Main)",ar:"ليلي (رئيسي)"},
+  RE6:{h:6,c:"Ramadan",en:"Evening (6h)",ar:"ليلي (6 س)"}, RE7:{h:7,c:"Ramadan",en:"Evening (7h)",ar:"ليلي (7 س)"}, RE8:{h:8,c:"Ramadan",en:"Evening (8h)",ar:"ليلي (8 س)"},
+  RN5:{h:5,c:"Ramadan",en:"Night (5h)",ar:"سهر (5 س)"}, RN6:{h:6,c:"Ramadan",en:"Night (6h)",ar:"سهر (6 س)"}, RN7:{h:7,c:"Ramadan",en:"Night (7h)",ar:"سهر (7 س)"}, RN8:{h:8,c:"Ramadan",en:"Night (8h)",ar:"سهر (8 س)"},
+  RN9:{h:9,c:"Ramadan",en:"Night (9h)",ar:"سهر (9 س)"}, N10:{h:10,c:"Ramadan",en:"Night (10h)",ar:"سهر (10 س)"}, RN:{h:10,c:"Ramadan",en:"Night (Main)",ar:"سهر (رئيسي)"},
+  RHD:{h:12,c:"Ramadan",en:"Half Day",ar:"نصف يوم"}, RH1:{h:12,c:"Ramadan",en:"Half Day (1)",ar:"نصف يوم (1)"}, RH2:{h:12,c:"Ramadan",en:"Half Day (2)",ar:"نصف يوم (2)"},
+  R19:{h:19,c:"Ramadan",en:"A/E/N in Ramadan",ar:"مسائي/ليلي/سهر في رمضان"}, RFD:{h:24,c:"Ramadan",en:"Full Day",ar:"يوم كامل"}, RF1:{h:24,c:"Ramadan",en:"Full Day (1)",ar:"يوم كامل (1)"}, RF2:{h:24,c:"Ramadan",en:"Full Day (2)",ar:"يوم كامل (2)"},
+
+  AL:{h:0,c:"Regular Leave",en:"Annual Leave",ar:"إجازة اعتيادية"}, SHL:{h:0,c:"Regular Leave",en:"Short Leave",ar:"إجازة قصيرة"}, EXT:{h:0,c:"Regular Leave",en:"Extend Leave",ar:"تمديد إجازة"},
+  HL:{h:0,c:"Regular Leave",en:"Al-Haj Leave",ar:"إجازة حج"}, STD:{h:0,c:"Regular Leave",en:"Study Leave",ar:"إجازة دراسية"}, UPL:{h:0,c:"Regular Leave",en:"Unpaid Leave",ar:"إجازة بدون راتب"},
+  LWS:{h:0,c:"Regular Leave",en:"Leave Without Salary",ar:"إجازة بدون مرتب"}, ORL:{h:0,c:"Regular Leave",en:"Oman Representation Leave",ar:"إجازة تمثيل عمان"},
+  BCL:{h:0,c:"Regular Leave",en:"Baby Care Leave",ar:"إجازة رعاية طفل"}, EXL:{h:0,c:"Regular Leave",en:"Examination Leave",ar:"إجازة امتحان"},
+  SAL:{h:0,c:"Regular Leave",en:"Spouse Accompany Leave",ar:"إجازة مرافقة زوج/زوجة"}, SRL:{h:0,c:"Regular Leave",en:"Scientific Research Leave",ar:"إجازة بحث علمي"},
+  PML:{h:0,c:"Regular Leave",en:"Projects Mgmt Leave",ar:"إجازة إدارة مشاريع"},
+
+  ML:{h:0,c:"Irregular Leave",en:"Maternity Leave",ar:"إجازة أمومة"}, PL:{h:0,c:"Irregular Leave",en:"Paternity Leave",ar:"إجازة أبوة"}, EL:{h:0,c:"Irregular Leave",en:"Emergency Leave",ar:"إجازة طارئة"},
+  ATL:{h:0,c:"Irregular Leave",en:"Attendant Leave",ar:"إجازة مرافق"}, ACL:{h:0,c:"Irregular Leave",en:"Accompany Leave",ar:"إجازة مرافقة"}, SL:{h:0,c:"Irregular Leave",en:"Sick Leave",ar:"إجازة مرضية"},
+  EDL:{h:0,c:"Irregular Leave",en:"Edda Leave",ar:"إجازة عدة"}, AB:{h:0,c:"Irregular Leave",en:"Absent",ar:"غياب بدون عذر"}, SE:{h:0,c:"Irregular Leave",en:"Sports Event",ar:"فعالية رياضية"},
+
+  OJT:{h:0,c:"Other Institutions",en:"On Job Training",ar:"تدريب أثناء العمل"}, ATC:{h:0,c:"Other Institutions",en:"Attachment",ar:"إلحاق"}, REF:{h:0,c:"Other Institutions",en:"Refreshment",ar:"دورة تنشيطية"},
+  COV:{h:0,c:"Other Institutions",en:"Covering Other Center",ar:"تغطية مركز آخر"}, ROT:{h:0,c:"Other Institutions",en:"Rotation",ar:"تدوير"}, DEP:{h:0,c:"Other Institutions",en:"Deputized",ar:"إنابة"},
+
+  TRA:{h:0,c:"Exit",en:"Transfer",ar:"نقل"}, TRO:{h:0,c:"Exit",en:"Transfer Out",ar:"نقل خارج"}, RET:{h:0,c:"Exit",en:"Retired",ar:"تقاعد"}, RES:{h:0,c:"Exit",en:"Resigned",ar:"استقالة"}, TER:{h:0,c:"Exit",en:"Terminated",ar:"إنهاء خدمة"},
+
+  O:{h:0,c:"Rest / Off",en:"OFF",ar:"راحة"}, PO:{h:0,c:"Rest / Off",en:"Pending Off due",ar:"بدل راحة مستحق"}, PH:{h:0,c:"Rest / Off",en:"Public Holiday",ar:"عطلة رسمية"}, OC:{h:0,c:"Rest / Off",en:"Off & Call",ar:"راحة مع استدعاء"},
+  APP:{h:0,c:"Rest / Off",en:"Appointment",ar:"موعد"}
+};
+const SHIFT_HOURS = {}; Object.keys(CODES).forEach(k=> SHIFT_HOURS[k]=CODES[k].h);
+
+const NUM_PERIODS = 13;
+const ROSTER_DAYS = 28;
+const STORE_KEY = 'SmartDutyRota_v22_Data';
+
+/* ================= STATE ================= */
+let state = {
+  lang: 'ar',
+  gov: 'Dhofar / ظفار', wilayatKey: 'salalah', instKey: DHOFAR_INSTITUTIONS.salalah[0].en, instCustom:'',
+  dept: 'LR',
+  globalStartDate: '2025-01-05',
+  nextStaffId: 1,
+  masterStaff: [],      // Array of master staff objects: [{id, des, stno, name}]
+  viewMasterMode: false, // Toggle between Period Staff view and Master Directory view
+  periods: {},          // periods[n] = { ramadan:false, locked:false, panelOpen:true, activeMap:{ [id]: boolean }, snapshots:{ [id]: {id, des, stno, name} }, duty:{[id]:{oldPo,duties:[28]}} }
+  currentPeriod: 1,
+  viewingTab: 'period'  // 'codes' | 'summary' | 'period'
+};
+
+function syncUnlockedPeriodStaff(n){
+  const p = state.periods[n];
+  if(!p || p.locked) return;
+
+  p.staff = state.masterStaff.map(m => {
+    const isActive = (p.activeMap && p.activeMap[m.id] !== undefined) ? p.activeMap[m.id] : true;
+    return { id: m.id, des: m.des, stno: m.stno, name: m.name, active: isActive };
+  });
+
+  if(p.snapshots){
+    Object.keys(p.snapshots).forEach(idStr => {
+      const id = parseInt(idStr, 10);
+      if(!p.staff.some(s => s.id === id)){
+        const snap = p.snapshots[id];
+        const isActive = (p.activeMap && p.activeMap[id] !== undefined) ? p.activeMap[id] : false;
+        if(isActive){
+          p.staff.push({ id: snap.id, des: snap.des, stno: snap.stno, name: snap.name, active: true });
+        }
+      }
+    });
+  }
+}
+
+function ensurePeriod(n){
+  if(state.periods[n]) {
+    syncUnlockedPeriodStaff(n);
+    ensureDutyRecords(n);
+    return;
+  }
+  
+  const initialActiveMap = {};
+  state.masterStaff.forEach(m => { initialActiveMap[m.id] = true; });
+
+  state.periods[n] = {
+    ramadan: false,
+    locked: false,
+    panelOpen: true,
+    activeMap: initialActiveMap,
+    snapshots: {},
+    staff: [],
+    duty: {}
+  };
+
+  syncUnlockedPeriodStaff(n);
+  ensureDutyRecords(n);
+}
+
+function ensureDutyRecords(n){
+  const p = state.periods[n];
+  p.staff.forEach(s=>{ if(!p.duty[s.id]) p.duty[s.id] = { oldPo:0, duties:new Array(ROSTER_DAYS).fill('') }; });
+}
+
+function ensureAllPeriodsUpTo(n){ for(let i=1;i<=n;i++) ensurePeriod(i); }
+
+function periodStartDate(n){
+  const base = new Date(state.globalStartDate + 'T00:00:00');
+  base.setDate(base.getDate() + (n-1)*ROSTER_DAYS);
+  return base;
+}
+function periodEndDate(n){ const d = periodStartDate(n); d.setDate(d.getDate()+ROSTER_DAYS-1); return d; }
+
+/* ================= LANGUAGE ================= */
+function applyStaticText(){
+  const t = TEXT[LANG];
+  document.getElementById('htmlRoot').dir = (LANG==='ar') ? 'rtl':'ltr';
+  document.getElementById('htmlRoot').lang = LANG;
+  document.title = t.pageTitle;
+  const map = {
+    btnReset:t.btnReset, btnExport:t.btnExport, btnExportJson:t.btnExportJson,
+    btnImportJson:t.btnImportJson, btnSave:t.btnSave, btnPrint:t.btnPrint, btnLang:t.btnLang,
+    lblGov:t.lblGov, lblWilayat:t.lblWilayat, lblInst:t.lblInst, lblDept:t.lblDept,
+    lblDailyHrs:t.lblDailyHrs, lblWeeklyHrs:t.lblWeeklyHrs, hMinistry:t.hMinistry, rotaTitle:t.rotaTitle,
+    lblPeriodOf:t.lblPeriodOf, lblFrom:t.lblFrom, lblTo:t.lblTo, lblRamadan:t.lblRamadan,
+    thSn:t.thSn, thDes:t.thDes, thStno:t.thStno, thName:t.thName,
+    thActualWork:t.thActualWork, thHrsDue:t.thHrsDue, thOT:t.thOT, thOldPo:t.thOldPo, thFinalPo:t.thFinalPo,
+    thHrs:t.thHrs, thDays:t.thDays, thOtNormal:t.thOtNormal, thOtRamadan:t.thOtRamadan, thOtTotal:t.thOtTotal,
+    lblOfficialHours:t.lblOfficialHours, lblCountM:t.lblCountM, lblCountA:t.lblCountA, lblCountE:t.lblCountE, lblCountN:t.lblCountN,
+    lblNotesTitle:t.lblNotesTitle, lblPreparedBy:t.lblPreparedBy, lblDate:t.lblDate, lblApproval:t.lblApproval, lblStamp:t.lblStamp,
+    summaryTitle:t.summaryTitle, summaryHint:t.summaryHint,
+    staffPanelTitle: state.viewMasterMode ? t.masterPanelTitle : t.staffPanelTitle,
+    staffHint: state.viewMasterMode ? t.masterStaffHint : t.staffHint,
+    btnAddStaff:t.btnAddStaff, btnCommitStaff:t.btnCommitStaff,
+    thStaffActive:t.thStaffActive, thStaffSn:t.thStaffSn, thStaffDes:t.thStaffDes, thStaffStno:t.thStaffStno, thStaffName:t.thStaffName, thStaffDel:t.thStaffDel,
+    codesTitle:t.codesTitle
+  };
+  Object.keys(map).forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML = map[id]; });
+  document.getElementById('lblNotesBody').innerHTML = t.lblNotesBody;
+  const lblStart = document.getElementById('lblStartDate');
+  lblStart.childNodes[lblStart.childNodes.length-1].textContent = ' ' + t.lblStartDate;
+  document.getElementById('instCustom').placeholder = t.customInstPlaceholder;
+  renderWilayatSelect();
+  renderInstSelect();
+}
+
+function toggleLang(){
+  LANG = (LANG==='ar') ? 'en' : 'ar';
+  state.lang = LANG;
+  applyStaticText();
+  renderTabs();
+  renderCurrentView();
+  saveToStorage(true);
+}
+
+/* ================= WILAYAT / INSTITUTION SELECTS ================= */
+function renderWilayatSelect(){
+  const t = TEXT[LANG];
+  const sel = document.getElementById('wilayatSelect');
+  const cur = state.wilayatKey;
+  sel.innerHTML = '';
+  DHOFAR_WILAYATS.forEach(w=>{
+    const opt = document.createElement('option');
+    opt.value = w.key; opt.textContent = LANG==='ar' ? w.ar : w.en;
+    if(w.key===cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+function renderInstSelect(){
+  const t = TEXT[LANG];
+  const sel = document.getElementById('instSelect');
+  const list = DHOFAR_INSTITUTIONS[state.wilayatKey] || [];
+  sel.innerHTML = '';
+  list.forEach(inst=>{
+    const opt = document.createElement('option');
+    opt.value = inst.en; opt.textContent = LANG==='ar' ? inst.ar : inst.en;
+    if(inst.en===state.instKey) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  const otherOpt = document.createElement('option');
+  otherOpt.value = OTHER_KEY; otherOpt.textContent = t.otherOption;
+  if(state.instKey===OTHER_KEY) otherOpt.selected = true;
+  sel.appendChild(otherOpt);
+
+  const customWrap = document.getElementById('instCustomWrap');
+  if(state.instKey===OTHER_KEY){ customWrap.classList.remove('hidden'); document.getElementById('instCustom').value = state.instCustom||''; }
+  else customWrap.classList.add('hidden');
+}
+function onWilayatChange(){
+  state.wilayatKey = document.getElementById('wilayatSelect').value;
+  const list = DHOFAR_INSTITUTIONS[state.wilayatKey] || [];
+  state.instKey = list.length ? list[0].en : OTHER_KEY;
+  renderInstSelect();
+  saveToStorage(true);
+}
+function onInstChange(){
+  state.instKey = document.getElementById('instSelect').value;
+  renderInstSelect();
+  saveToStorage(true);
+}
+function onInstCustomChange(){
+  state.instCustom = document.getElementById('instCustom').value;
+  saveToStorage(true);
+}
+function currentInstName(){
+  if(state.instKey===OTHER_KEY) return state.instCustom || '';
+  const list = DHOFAR_INSTITUTIONS[state.wilayatKey] || [];
+  const found = list.find(i=>i.en===state.instKey);
+  if(!found) return state.instKey;
+  return LANG==='ar' ? found.ar : found.en;
+}
+
+/* ================= TABS ================= */
+function renderTabs(){
+  const t = TEXT[LANG];
+  const wrap = document.getElementById('periodTabs');
+  wrap.innerHTML = '';
+
+  const codesBtn = document.createElement('button');
+  codesBtn.textContent = t.tabCodes; codesBtn.className='tab-codes'+(state.viewingTab==='codes'?' active':'');
+  codesBtn.onclick = ()=>{ state.viewingTab='codes'; renderTabs(); renderCurrentView(); };
+  wrap.appendChild(codesBtn);
+
+  const sep = document.createElement('div'); sep.className='sep'; wrap.appendChild(sep);
+
+  for(let n=1;n<=NUM_PERIODS;n++){
+    const b = document.createElement('button');
+    const dot = document.createElement('span');
+    dot.className = 'lock-dot ' + (state.periods[n] ? (state.periods[n].locked?'locked':'unlocked') : 'unlocked');
+    b.appendChild(dot);
+    b.appendChild(document.createTextNode(t.period + ' ' + n));
+    if(state.viewingTab==='period' && state.currentPeriod===n) b.classList.add('active');
+    b.onclick = ()=>{ state.viewingTab='period'; state.currentPeriod=n; ensureAllPeriodsUpTo(n); renderTabs(); renderCurrentView(); };
+    wrap.appendChild(b);
+  }
+
+  const sep2 = document.createElement('div'); sep2.className='sep'; wrap.appendChild(sep2);
+  const sb = document.createElement('button');
+  sb.textContent = t.tabSummary; sb.className='tab-summary'+(state.viewingTab==='summary'?' active':'');
+  sb.onclick = ()=>{ state.viewingTab='summary'; renderTabs(); renderCurrentView(); };
+  wrap.appendChild(sb);
+}
+
+function renderCurrentView(){
+  document.getElementById('codesView').classList.add('hidden');
+  document.getElementById('periodView').classList.add('hidden');
+  document.getElementById('summaryView').classList.add('hidden');
+
+  if(state.viewingTab==='codes'){ document.getElementById('codesView').classList.remove('hidden'); renderCodesTab(); }
+  else if(state.viewingTab==='summary'){ document.getElementById('summaryView').classList.remove('hidden'); renderSummary(); }
+  else {
+    ensureAllPeriodsUpTo(state.currentPeriod);
+    document.getElementById('periodView').classList.remove('hidden');
+    renderPeriod(state.currentPeriod);
+  }
+}
+
+/* ================= HEADER FIELDS SYNC ================= */
+function bindHeaderInputsOnce(){
+  ['govName','deptName','dailyHours','weeklyHours'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', ()=>{
+      state.gov = govName.value; state.dept = deptName.value; saveToStorage(true);
+    });
+  });
+  document.getElementById('wilayatSelect').addEventListener('change', onWilayatChange);
+  document.getElementById('instSelect').addEventListener('change', onInstChange);
+  document.getElementById('instCustom').addEventListener('input', onInstCustomChange);
+  document.getElementById('ramadanMode').addEventListener('change', toggleRamadan);
+  document.getElementById('startDatePicker').addEventListener('change', onGlobalStartChange);
+}
+function fillHeaderFromState(){
+  govName.value = state.gov; deptName.value = state.dept;
+  startDatePicker.value = state.globalStartDate;
+}
+function onGlobalStartChange(){
+  state.globalStartDate = startDatePicker.value || state.globalStartDate;
+  saveToStorage(true);
+  renderCurrentView();
+}
+function toggleRamadan(){
+  const p = state.periods[state.currentPeriod];
+  p.ramadan = document.getElementById('ramadanMode').checked;
+  saveToStorage(true);
+  renderPeriod(state.currentPeriod);
+}
+
+/* ================= PER-PERIOD STAFF PANEL ================= */
+function toggleStaffPanelOpen(){
+  const p = state.periods[state.currentPeriod];
+  p.panelOpen = !p.panelOpen;
+  saveToStorage(true);
+  renderPeriod(state.currentPeriod);
+}
+function toggleMasterView(){
+  state.viewMasterMode = !state.viewMasterMode;
+  saveToStorage(true);
+  renderPeriod(state.currentPeriod);
+}
+function unlockPeriodStaff(){
+  const t = TEXT[LANG];
+  if(!confirm(t.confirmUnlock)) return;
+  const p = state.periods[state.currentPeriod];
+  p.locked = false; p.panelOpen = true;
+  saveToStorage(true);
+  renderTabs();
+  renderPeriod(state.currentPeriod);
+}
+function commitPeriodStaff(){
+  const t = TEXT[LANG];
+  if(!confirm(t.confirmCommit.replace('{n}', state.currentPeriod))) return;
+  const p = state.periods[state.currentPeriod];
+  
+  p.snapshots = {};
+  p.staff.forEach(s => {
+    p.snapshots[s.id] = { id: s.id, des: s.des, stno: s.stno, name: s.name, active: s.active };
+  });
+
+  ensureDutyRecords(state.currentPeriod);
+  p.locked = true; p.panelOpen = false;
+  saveToStorage(true);
+  alert(t.committedMsg);
+  renderTabs();
+  renderPeriod(state.currentPeriod);
+}
+
+function addStaffRow(){
+  const id = state.nextStaffId++;
+  const newStaff = { id, des:'SN', stno:'', name:'' };
+  
+  state.masterStaff.push(newStaff);
+
+  for(let n=1; n<=NUM_PERIODS; n++){
+    if(!state.periods[n]) continue;
+    if(!state.periods[n].activeMap) state.periods[n].activeMap = {};
+    state.periods[n].activeMap[id] = (n === state.currentPeriod);
+    if(!state.periods[n].locked){
+      syncUnlockedPeriodStaff(n);
+      ensureDutyRecords(n);
+    }
+  }
+
+  saveToStorage(true);
+  renderPeriod(state.currentPeriod);
+}
+
+function deleteStaffRow(idx){
+  const t = TEXT[LANG];
+  if(!confirm(t.confirmDeleteStaff)) return;
+
+  if(state.viewMasterMode){
+    const removed = state.masterStaff.splice(idx,1)[0];
+    if(removed){
+      for(let n=1; n<=NUM_PERIODS; n++){
+        const p = state.periods[n];
+        if(!p) continue;
+        if(p.activeMap) delete p.activeMap[removed.id];
+        if(p.duty) delete p.duty[removed.id];
+        if(p.snapshots) delete p.snapshots[removed.id];
+        if(!p.locked){
+          syncUnlockedPeriodStaff(n);
+        } else if(p.staff){
+          p.staff = p.staff.filter(s => s.id !== removed.id);
+        }
+      }
+    }
+  } else {
+    const curP = state.currentPeriod;
+    const p = state.periods[curP];
+    if(p.locked) return;
+    const s = p.staff[idx];
+    if(s){
+      const staffId = s.id;
+      
+      // Remove from Master Directory so it won't be copied into future periods
+      const masterIdx = state.masterStaff.findIndex(m => m.id === staffId);
+      if(masterIdx !== -1) state.masterStaff.splice(masterIdx, 1);
+
+      // Purge completely from current and future periods (leave past periods intact)
+      for(let n = curP; n <= NUM_PERIODS; n++){
+        const targetP = state.periods[n];
+        if(!targetP) continue;
+        
+        if(targetP.activeMap) delete targetP.activeMap[staffId];
+        if(targetP.duty) delete targetP.duty[staffId];
+        if(targetP.snapshots) delete targetP.snapshots[staffId];
+        
+        if(targetP.staff){
+          targetP.staff = targetP.staff.filter(item => item.id !== staffId);
+        }
+        if(!targetP.locked){
+          syncUnlockedPeriodStaff(n);
+        }
+      }
+    }
+  }
+
+  saveToStorage(true);
+  renderPeriod(state.currentPeriod);
+}
+
+function toggleStaffActive(idx, checked){
+  const p = state.periods[state.currentPeriod];
+  if(p.locked) return;
+  const s = p.staff[idx];
+  if(s){
+    s.active = checked;
+    if(!p.activeMap) p.activeMap = {};
+    p.activeMap[s.id] = checked;
+  }
+  saveToStorage(true);
+  renderStaffStatusBar();
+  renderPeriod(state.currentPeriod);
+}
+
+function updateStaffField(id, field, val){
+  const masterItem = state.masterStaff.find(m => m.id === id);
+  if(masterItem){
+    masterItem[field] = val;
+  }
+
+  for(let n=1; n<=NUM_PERIODS; n++){
+    const p = state.periods[n];
+    if(!p || p.locked) continue;
+    syncUnlockedPeriodStaff(n);
+  }
+
+  // Update table inputs directly without wiping focus
+  const row = document.querySelector(`#rotaBody tr[data-id="${id}"]`);
+  if(row){
+    if(field === 'des'){ const el = row.querySelector('.des-input'); if(el) el.value = val; }
+    if(field === 'stno'){ const el = row.querySelector('.stno-input'); if(el) el.value = val; }
+    if(field === 'name'){ const el = row.querySelector('.name-input'); if(el) el.value = val; }
+  }
+
+  saveToStorage(true);
+}
+
+function renderStaffPanel(){
+  const t = TEXT[LANG];
+  const p = state.periods[state.currentPeriod];
+  const locked = p.locked;
+
+  document.getElementById('staffPanelTitle').textContent = state.viewMasterMode ? t.masterPanelTitle : t.staffPanelTitle;
+  document.getElementById('staffHint').textContent = state.viewMasterMode ? t.masterStaffHint : t.staffHint;
+  document.getElementById('btnToggleMasterView').textContent = state.viewMasterMode ? t.btnHideMaster : t.btnShowMaster;
+
+  document.getElementById('lockDot').className = 'lock-dot ' + (locked?'locked':'unlocked');
+  document.getElementById('btnToggleStaffPanel').textContent = p.panelOpen ? t.btnToggleHide : t.btnToggleShow;
+  document.getElementById('staffPanelBody').classList.toggle('hidden', !p.panelOpen);
+  document.getElementById('btnUnlockPeriod').classList.toggle('hidden', !locked);
+  document.getElementById('btnUnlockPeriod').textContent = t.btnUnlock;
+  document.getElementById('btnAddStaff').classList.toggle('hidden', locked && !state.viewMasterMode);
+  document.getElementById('btnAddStaff').textContent = t.btnAddStaff;
+  document.getElementById('btnCommitStaff').classList.toggle('hidden', locked || state.viewMasterMode);
+  document.getElementById('btnCommitStaff').textContent = t.btnCommitStaff;
+
+  const tbody = document.getElementById('staffTbody');
+  tbody.innerHTML = '';
+
+  const listToRender = state.viewMasterMode ? state.masterStaff : p.staff;
+
+  listToRender.forEach((st, idx)=>{
+    const tr = document.createElement('tr');
+
+    const tdActive = document.createElement('td'); tdActive.style.textAlign='center';
+    const cb = document.createElement('input'); cb.type='checkbox'; 
+    cb.checked = state.viewMasterMode ? true : !!st.active; 
+    cb.disabled = locked || state.viewMasterMode;
+    cb.onchange = ()=> toggleStaffActive(idx, cb.checked);
+    tdActive.appendChild(cb); tr.appendChild(tdActive);
+
+    const tdSn = document.createElement('td'); tdSn.style.textAlign='center'; tdSn.textContent = idx+1; tr.appendChild(tdSn);
+
+    const tdDes = document.createElement('td');
+    const inpDes = document.createElement('input'); inpDes.type='text'; inpDes.value = st.des||''; inpDes.disabled = locked && !state.viewMasterMode;
+    inpDes.oninput = ()=> updateStaffField(st.id, 'des', inpDes.value);
+    tdDes.appendChild(inpDes); tr.appendChild(tdDes);
+
+    const tdStno = document.createElement('td');
+    const inpStno = document.createElement('input'); inpStno.type='text'; inpStno.value = st.stno||''; inpStno.disabled = locked && !state.viewMasterMode;
+    inpStno.oninput = ()=> updateStaffField(st.id, 'stno', inpStno.value);
+    tdStno.appendChild(inpStno); tr.appendChild(tdStno);
+
+    const tdName = document.createElement('td');
+    const inpName = document.createElement('input'); inpName.type='text'; inpName.value = st.name||''; inpName.disabled = locked && !state.viewMasterMode;
+    inpName.placeholder = t.namePlaceholder(idx+1);
+    inpName.oninput = ()=> updateStaffField(st.id, 'name', inpName.value);
+    tdName.appendChild(inpName); tr.appendChild(tdName);
+
+    const tdDel = document.createElement('td'); tdDel.style.textAlign='center';
+    if(!locked || state.viewMasterMode){
+      const btnDel = document.createElement('button'); btnDel.className='btn btn-danger btn-sm'; btnDel.textContent='✕';
+      btnDel.onclick = ()=> deleteStaffRow(idx);
+      tdDel.appendChild(btnDel);
+    }
+    tr.appendChild(tdDel);
+
+    tbody.appendChild(tr);
+  });
+  renderStaffStatusBar();
+}
+
+function renderStaffStatusBar(){
+  const t = TEXT[LANG];
+  const p = state.periods[state.currentPeriod];
+  const activeCount = p.staff.filter(s=>s.active).length;
+  const el = document.getElementById('staffStatus');
+  el.textContent = (p.locked ? t.clean : t.dirty) + ' — ' + t.activeCount(activeCount, p.staff.length);
+  el.className = 'staff-status ' + (p.locked ? 'clean' : 'dirty');
+}
+
+/* ================= CODES TAB ================= */
+function renderCodesTab(){
+  const t = TEXT[LANG];
+  const grid = document.getElementById('codesGrid');
+  grid.innerHTML = '';
+  CAT_ORDER.forEach(cat=>{
+    const entries = Object.entries(CODES).filter(([k,v])=>v.c===cat);
+    if(!entries.length) return;
+    const div = document.createElement('div'); div.className='cat';
+    const rows = entries.map(([k,v])=>`<tr><td class="code">${k}</td><td>${LANG==='ar'?v.ar:v.en}</td><td class="hrs">${v.h}${LANG==='ar'?'س':'h'}</td></tr>`).join('');
+    div.innerHTML = `<h3>${t.catNames[cat]}</h3><table>${rows}</table>`;
+    grid.appendChild(div);
+  });
+}
+
+/* ================= RENDER PERIOD TABLE ================= */
+function renderPeriod(n){
+  const t = TEXT[LANG];
+  ensurePeriod(n);
+  const p = state.periods[n];
+  const start = periodStartDate(n);
+  const end = periodEndDate(n);
+  document.getElementById('lblCurPeriodNum').textContent = n;
+  document.getElementById('lblDateFrom').textContent = start.toLocaleDateString('en-GB');
+  document.getElementById('lblDateTo').textContent = end.toLocaleDateString('en-GB');
+  document.getElementById('lblPreparedDate').textContent = new Date().toLocaleDateString(LANG==='ar'?'ar-OM':'en-GB');
+  document.getElementById('ramadanMode').checked = !!p.ramadan;
+  document.getElementById('rotaTitle').textContent = t.rotaTitle;
+
+  renderStaffPanel();
+
+  const dateNumRow = document.getElementById('dateNumRow');
+  const dayNameRow = document.getElementById('dayNameRow');
+  const officialHoursRow = document.getElementById('officialHoursRow');
+  document.querySelectorAll('.day-col-header, .day-col-sub, .day-col-off').forEach(el=>el.remove());
+
+  const stdHours = p.ramadan ? 5 : 7;
+  let totReq = 0;
+  const refColNum = dateNumRow.children[4];
+  const refColDay = dayNameRow.children[0];
+  const refColOff = officialHoursRow.children[1];
+
+  for(let i=0;i<ROSTER_DAYS;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const dow = d.getDay(); const isFri = dow===5, isSat = dow===6;
+
+    const thNum = document.createElement('th');
+    thNum.className = `day-col-header ${isFri?'th-fri':''} ${isSat?'th-sat':''}`;
+    thNum.textContent = d.getDate();
+    dateNumRow.insertBefore(thNum, refColNum);
+
+    const thDay = document.createElement('th');
+    thDay.className = `day-col-sub ${isFri?'th-fri':''} ${isSat?'th-sat':''}`;
+    thDay.textContent = DAYS[LANG][dow];
+    dayNameRow.insertBefore(thDay, refColDay);
+
+    const tdOff = document.createElement('td');
+    tdOff.className = `day-col-off ${isFri?'td-fri':''} ${isSat?'td-sat':''}`;
+    const target = (isFri||isSat) ? 0 : stdHours;
+    tdOff.textContent = target; totReq += target;
+    officialHoursRow.insertBefore(tdOff, refColOff);
+  }
+  document.getElementById('totOfficialHours').textContent = totReq + ' ' + t.hoursUnit;
+
+  const tbody = document.getElementById('rotaBody');
+  tbody.innerHTML = '';
+  const activeStaff = p.staff.filter(s=>s.active);
+  activeStaff.forEach((st, idx)=> tbody.appendChild(buildStaffRow(n, st, start, idx)));
+  calculateAllRows(n);
+}
+
+function buildStaffRow(periodN, staffMeta, periodStart, idx){
+  const t = TEXT[LANG];
+  const rec = state.periods[periodN].duty[staffMeta.id];
+  const tr = document.createElement('tr');
+  tr.dataset.id = staffMeta.id;
+
+  const tdSn = document.createElement('td'); tdSn.textContent = idx+1; tr.appendChild(tdSn);
+
+  const tdDes = document.createElement('td');
+  const inpDes = document.createElement('input'); inpDes.className='des-input'; inpDes.value = staffMeta.des||'';
+  inpDes.disabled = true; inpDes.title = LANG==='ar' ? 'يُعدَّل من قائمة موظفي هذه الفترة' : 'Edit from this period\'s staff panel';
+  tdDes.appendChild(inpDes); tr.appendChild(tdDes);
+
+  const tdStno = document.createElement('td');
+  const inpStno = document.createElement('input'); inpStno.className='stno-input'; inpStno.value = staffMeta.stno||'';
+  inpStno.disabled = true;
+  tdStno.appendChild(inpStno); tr.appendChild(tdStno);
+
+  const tdName = document.createElement('td'); tdName.className='col-name';
+  const inpName = document.createElement('input'); inpName.className='name-input'; inpName.value = staffMeta.name||'';
+  inpName.placeholder = t.namePlaceholder(idx+1);
+  inpName.disabled = true;
+  tdName.appendChild(inpName); tr.appendChild(tdName);
+
+  for(let i=0;i<ROSTER_DAYS;i++){
+    const d = new Date(periodStart); d.setDate(periodStart.getDate()+i);
+    const isFri = d.getDay()===5, isSat = d.getDay()===6;
+    const td = document.createElement('td');
+    td.className = `${isFri?'td-fri':''} ${isSat?'td-sat':''}`;
+    const inp = document.createElement('input');
+    inp.maxLength = 5; inp.dataset.day = i;
+    inp.value = (rec && rec.duties[i]) ? rec.duties[i] : '';
+    const info = CODES[inp.value];
+    if(info) inp.title = (LANG==='ar'?info.ar:info.en) + ' · ' + info.h + (LANG==='ar'?'س':'h');
+    inp.oninput = ()=>{
+      inp.value = inp.value.toUpperCase();
+      if(rec) rec.duties[i] = inp.value;
+      const info2 = CODES[inp.value];
+      inp.title = info2 ? (LANG==='ar'?info2.ar:info2.en) + ' · ' + info2.h + (LANG==='ar'?'س':'h') : '';
+      highlightCell(inp, td);
+      calculateRow(periodN, tr, staffMeta.id);
+      calculateShiftStats(periodN);
+      saveToStorage(true);
+    };
+    td.appendChild(inp);
+    tr.appendChild(td);
+    highlightCell(inp, td);
+  }
+
+  const statCells = ['cell-hrs-worked','cell-days-worked','cell-hrs-due','cell-ot-normal','cell-ot-ramadan','cell-ot-total'];
+  statCells.forEach(cls=>{
+    const td = document.createElement('td'); td.className = 'stat-val ' + cls; td.textContent='0';
+    if(cls.startsWith('cell-ot')) td.classList.add('val-overtime');
+    tr.appendChild(td);
+  });
+
+  const tdOldPo = document.createElement('td');
+  const inpOld = document.createElement('input'); inpOld.type='number'; inpOld.className='cell-old-po';
+  inpOld.style.width='40px'; inpOld.value = rec ? (rec.oldPo||0) : 0;
+  inpOld.oninput = ()=>{ if(rec) rec.oldPo = parseFloat(inpOld.value)||0; calculateRow(periodN, tr, staffMeta.id); saveToStorage(true); };
+  tdOldPo.appendChild(inpOld); tr.appendChild(tdOldPo);
+
+  const tdFinal = document.createElement('td'); tdFinal.className='stat-val cell-final-po'; tdFinal.style.background='#e8f5e9'; tdFinal.textContent='0';
+  tr.appendChild(tdFinal);
+
+  return tr;
+}
+
+function highlightCell(input, td){
+  const val = input.value.trim();
+  td.classList.remove('td-night');
+  if(['N','N7','N8','N10','RN','RN5','RN6','RN7','RN8','RN9'].includes(val)) td.classList.add('td-night');
+}
+
+function calculateRow(periodN, tr, staffId){
+  const p = state.periods[periodN];
+  const rec = p.duty[staffId];
+  if(!rec) return;
+  const isRamadan = !!p.ramadan;
+  const stdDay = isRamadan ? 5 : 7;
+  let workedHours = 0, workedDays = 0;
+
+  rec.duties.forEach(code=>{
+    code = (code||'').trim();
+    if(code && SHIFT_HOURS.hasOwnProperty(code)){
+      const hrs = SHIFT_HOURS[code];
+      workedHours += hrs;
+      if(hrs>0) workedDays++;
+    }
+  });
+
+  const dueHours = isRamadan ? 100 : 140;
+  let otNormal=0, otRamadan=0;
+  if(workedHours > dueHours){
+    if(isRamadan) otRamadan = workedHours - dueHours;
+    else otNormal = workedHours - dueHours;
+  }
+  const totalOt = otNormal + otRamadan;
+  const oldPo = parseFloat(rec.oldPo)||0;
+  const earnedPoDays = totalOt>0 ? (totalOt/stdDay) : 0;
+  const finalPo = (oldPo + earnedPoDays).toFixed(1);
+
+  tr.querySelector('.cell-hrs-worked').textContent = workedHours;
+  tr.querySelector('.cell-days-worked').textContent = workedDays;
+  tr.querySelector('.cell-hrs-due').textContent = dueHours;
+  tr.querySelector('.cell-ot-normal').textContent = otNormal;
+  tr.querySelector('.cell-ot-ramadan').textContent = otRamadan;
+  tr.querySelector('.cell-ot-total').textContent = totalOt;
+  tr.querySelector('.cell-final-po').textContent = finalPo;
+}
+
+function calculateAllRows(periodN){
+  document.querySelectorAll('#rotaBody tr').forEach(tr=>{
+    calculateRow(periodN, tr, parseInt(tr.dataset.id,10));
+  });
+  calculateShiftStats(periodN);
+}
+
+function calculateShiftStats(periodN){
+  const shiftM = new Array(ROSTER_DAYS).fill(0);
+  const shiftA = new Array(ROSTER_DAYS).fill(0);
+  const shiftE = new Array(ROSTER_DAYS).fill(0);
+  const shiftN = new Array(ROSTER_DAYS).fill(0);
+  state.periods[periodN].staff.filter(s=>s.active).forEach(st=>{
+    const rec = state.periods[periodN].duty[st.id];
+    if(!rec) return;
+    rec.duties.forEach((code, day)=>{
+      code = (code||'').trim();
+      if(['M','M1','M2','M8','MC','RM1','RM2','RM5'].includes(code)) shiftM[day]++;
+      if(['A','A1','A2','A8','RA1','RA2','RA5'].includes(code)) shiftA[day]++;
+      if(['E','E1','E2','E8','RE1','RE2','RE5'].includes(code)) shiftE[day]++;
+      if(['N','N7','N8','RN','RN5','RN6','RN7'].includes(code)) shiftN[day]++;
+    });
+  });
+  renderStatFooter('shiftCountsM', shiftM);
+  renderStatFooter('shiftCountsA', shiftA);
+  renderStatFooter('shiftCountsE', shiftE);
+  renderStatFooter('shiftCountsN', shiftN);
+}
+
+function renderStatFooter(rowId, totals){
+  const tr = document.getElementById(rowId);
+  while(tr.children.length > 2) tr.removeChild(tr.children[1]);
+  const ref = tr.children[1];
+  totals.forEach(val=>{
+    const td = document.createElement('td');
+    td.textContent = val>0 ? val : '-';
+    tr.insertBefore(td, ref);
+  });
+}
+
+/* ================= SUMMARY ================= */
+function renderSummary(){
+  const t = TEXT[LANG];
+  document.getElementById('summaryTitle').textContent = t.summaryTitle;
+  document.getElementById('summaryHint').textContent = t.summaryHint;
+
+  const order = [];
+  const known = {};
+  for(let n=1;n<=NUM_PERIODS;n++){
+    const p = state.periods[n];
+    if(!p) continue;
+    p.staff.forEach(s=>{
+      if(!(s.id in known)){ known[s.id] = s.name; order.push(s.id); }
+      else if(s.name) known[s.id] = s.name;
+    });
+  }
+
+  const table = document.getElementById('summaryTable');
+  let head = `<thead><tr><th>${t.thName}</th>`;
+  for(let n=1;n<=NUM_PERIODS;n++) head += `<th>${t.period} ${n}</th>`;
+  head += `<th>${LANG==='ar'?'إجمالي السنة':'Year Total'}</th></tr></thead>`;
+
+  let body = '<tbody>';
+  order.forEach((id, i)=>{
+    let yearTotal = 0;
+    let row = '';
+    for(let n=1;n<=NUM_PERIODS;n++){
+      const p = state.periods[n];
+      const inPeriod = p && p.staff.some(s=>s.id===id && s.active);
+      let worked = null;
+      if(p && inPeriod){
+        const rec = p.duty[id];
+        worked = 0;
+        if(rec) rec.duties.forEach(code=>{ code=(code||'').trim(); if(code && SHIFT_HOURS.hasOwnProperty(code)) worked += SHIFT_HOURS[code]; });
+        yearTotal += worked;
+      }
+      row += `<td>${worked===null ? '' : worked}</td>`;
+    }
+    const name = known[id] || t.namePlaceholder(i+1);
+    body += `<tr><td class="name-cell">${name}</td>${row}<td class="total-cell">${yearTotal}</td></tr>`;
+  });
+  body += '</tbody>';
+  table.innerHTML = head+body;
+}
+
+/* ================= EXPORT / IMPORT / RESET / SAVE ================= */
+function resetAllData(){
+  const t = TEXT[LANG];
+  if(!confirm(t.confirmReset)) return;
+  localStorage.removeItem(STORE_KEY);
+  state = {
+    lang: LANG,
+    gov: 'Dhofar / ظفار', wilayatKey: 'salalah', instKey: DHOFAR_INSTITUTIONS.salalah[0].en, instCustom:'',
+    dept: 'LR', globalStartDate: '2025-01-05', nextStaffId: 1, masterStaff: [], viewMasterMode: false,
+    periods: {}, currentPeriod: 1, viewingTab: 'period'
+  };
+  init(true);
+}
+
+function exportCSV(){
+  if(state.viewingTab!=='period'){ alert(LANG==='ar' ? 'الرجاء فتح تبويب فترة أولاً' : 'Please open a period tab first'); return; }
+  const n = state.currentPeriod;
+  const p = state.periods[n];
+  const activeStaff = p.staff.filter(s=>s.active);
+  let csv = '\uFEFF';
+  csv += 'S.N,DES,St.No,NAME,';
+  for(let i=1;i<=ROSTER_DAYS;i++) csv += `Day ${i},`;
+  csv += 'Worked Hrs,Worked Days,Due Hrs,Normal OT,Ramadan OT,Total OT,Old PO,Final PO\n';
+  document.querySelectorAll('#rotaBody tr').forEach((tr,idx)=>{
+    const st = activeStaff[idx];
+    const rec = p.duty[st.id];
+    csv += `${idx+1},${st.des},${st.stno},"${st.name}",`;
+    if(rec) rec.duties.forEach(c=> csv += `${c||''},`);
+    csv += `${tr.querySelector('.cell-hrs-worked').textContent},`;
+    csv += `${tr.querySelector('.cell-days-worked').textContent},`;
+    csv += `${tr.querySelector('.cell-hrs-due').textContent},`;
+    csv += `${tr.querySelector('.cell-ot-normal').textContent},`;
+    csv += `${tr.querySelector('.cell-ot-ramadan').textContent},`;
+    csv += `${tr.querySelector('.cell-ot-total').textContent},`;
+    csv += `${rec ? rec.oldPo : 0},`;
+    csv += `${tr.querySelector('.cell-final-po').textContent}\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `Duty_Rota_${state.dept}_Period${n}.csv`;
+  link.click();
+}
+
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `Duty_Rota_Backup.json`;
+  link.click();
+}
+function importJSON(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      state = data;
+      LANG = state.lang || 'ar';
+      init(true);
+    }catch(err){ alert('Invalid file'); }
+  };
+  reader.readAsText(file);
+}
+
+function saveToStorage(silent){
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  if(!silent) alert(TEXT[LANG].savedMsg);
+}
+function loadFromStorage(){
+  const raw = localStorage.getItem(STORE_KEY);
+  if(!raw) return false;
+  try{ state = JSON.parse(raw); LANG = state.lang || 'ar'; return true; }
+  catch(e){ return false; }
+}
+
+/* Keyboard navigation across matrix cells */
+document.addEventListener('keydown', (e)=>{
+  if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) return;
+  const active = document.activeElement;
+  if(!active || !active.dataset || active.dataset.day===undefined) return;
+  const currentDay = parseInt(active.dataset.day,10);
+  const currentRow = active.closest('tr');
+  const rtl = document.getElementById('htmlRoot').dir === 'rtl';
+  const goPrevCol = ()=>{ const prev = currentRow.querySelector(`input[data-day="${currentDay-1}"]`); if(prev) prev.focus(); };
+  const goNextCol = ()=>{ const next = currentRow.querySelector(`input[data-day="${currentDay+1}"]`); if(next) next.focus(); };
+  if(e.key==='ArrowRight'){ rtl ? goPrevCol() : goNextCol(); }
+  else if(e.key==='ArrowLeft'){ rtl ? goNextCol() : goPrevCol(); }
+  else if(e.key==='ArrowDown'){ const nr=currentRow.nextElementSibling; if(nr){ const b=nr.querySelector(`input[data-day="${currentDay}"]`); if(b) b.focus(); } }
+  else if(e.key==='ArrowUp'){ const pr=currentRow.previousElementSibling; if(pr){ const a=pr.querySelector(`input[data-day="${currentDay}"]`); if(a) a.focus(); } }
+});
+
+/* ================= INIT ================= */
+function init(skipLoad){
+  if(!skipLoad) loadFromStorage();
+  if(!state.periods) state.periods = {};
+  if(state.nextStaffId===undefined) state.nextStaffId = 1;
+  if(!state.masterStaff) state.masterStaff = [];
+  if(!state.wilayatKey) state.wilayatKey = 'salalah';
+  if(!state.instKey) state.instKey = DHOFAR_INSTITUTIONS.salalah[0].en;
+  if(state.instCustom===undefined) state.instCustom = '';
+  if(!state.gov) state.gov = 'Dhofar / ظفار';
+  if(!state.viewingTab) state.viewingTab = 'period';
+  if(!state.currentPeriod) state.currentPeriod = 1;
+
+  ensureAllPeriodsUpTo(state.currentPeriod);
+  Object.keys(state.periods).forEach(n=>{
+    if(state.periods[n].panelOpen===undefined) state.periods[n].panelOpen = !state.periods[n].locked;
+  });
+
+  bindHeaderInputsOnce_safe();
+  fillHeaderFromState();
+  applyStaticText();
+  renderTabs();
+  renderCurrentView();
+}
+let _bound=false;
+function bindHeaderInputsOnce_safe(){ if(_bound) return; _bound=true; bindHeaderInputsOnce(); }
+
+window.addEventListener('DOMContentLoaded', ()=>init(false));
+</script>
+</body>
+</html>
