@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" id="htmlRoot">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0060)file:///C:/Users/idris/Downloads/Dhofar_Duty_Rota%20(1).html -->
+<html lang="en" dir="ltr" id="htmlRoot"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title id="pageTitle">Dhofar Smart Duty Rota</title>
 <style>
@@ -27,7 +27,19 @@
   .btn:disabled { opacity:.5; cursor:not-allowed; }
   .btn-sm { padding: 4px 10px; font-size: 11.5px; }
 
-  .period-tabs { display: flex; flex-wrap: wrap; gap: 4px; background: #fff; border-radius: 8px; padding: 8px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .period-tabs { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; min-width: 0; align-items: center; }
+  .tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-inline-start: auto; }
+  .tools label { font-size: 11.5px; font-weight: 600; color: #455a64; display:flex; align-items:center; gap:4px; }
+  .tools input[type=date] { padding: 3px 6px; border: 1px solid #cfd8dc; border-radius: 4px; font-size: 12px; }
+  .gear { font-size: 16px; line-height: 1; padding: 4px 10px; }
+  .settings-menu { position: absolute; inset-inline-end: 0; top: calc(100% + 4px); z-index: 50; min-width: 190px; background: #fff; border: 1px solid #cfd8dc; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.15); overflow: hidden; }
+  .menu-item { display: block; width: 100%; text-align: start; padding: 9px 14px; background: #fff; border: none; border-bottom: 1px solid #eef1f3; cursor: pointer; font-size: 12.5px; font-weight: 600; color: #37474f; }
+  .menu-item:hover { background: #f1f6fb; }
+  .menu-item.danger { color: #c62828; }
+  .period-tabs button.is-today { border-color: #e53935; box-shadow: 0 0 0 1px #e53935 inset; }
+  .th-today { outline: 2px solid #e53935; outline-offset: -2px; }
+  td input.code-invalid { background: #ffcdd2 !important; color: #b71c1c; }
+  .notice { background:#fff3e0; border:1px solid #ffcc80; color:#e65100; padding:6px 10px; border-radius:6px; margin-bottom:8px; font-size:12px; font-weight:600; }
   .period-tabs button { padding: 6px 12px; border: 1px solid #cfd8dc; background: #f5f7f8; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 12px; color: #455a64; position:relative; }
   .period-tabs button.active { background: var(--primary); color: #fff; border-color: var(--primary-dark); }
   .period-tabs button.tab-codes { background: #ede7f6; border-color: #b39ddb; color: #4527a0; }
@@ -79,10 +91,13 @@
   td input { width: 100%; border: none; background: transparent; text-align: center; font-size: 11px; font-weight: 600; outline: none; text-transform: uppercase; }
   td input.name-input { text-align: inherit; text-transform: none; }
   td input:focus { background: #e0f2fe; }
+  td input.cell-old-po.overridden { background: #fff59d; }
 
   .th-stat { background: #b0bec5 !important; font-size: 10px; }
   .stat-val { font-weight: 700; color: #0d47a1; background: #f1f8e9; }
   .val-overtime { color: #b71c1c; font-weight: bold; }
+  .cell-po-used { color: #6a1b9a; }
+  .val-neg { color: #b71c1c !important; }
 
   .rota-footer { margin-top: 14px; border-top: 2px solid #455a64; padding-top: 8px; display: grid; grid-template-columns: 2fr 1fr 1fr; font-size: 11px; gap: 15px; }
 
@@ -97,13 +112,97 @@
   table.summary-table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
   table.summary-table th, table.summary-table td { border: 1px solid #b0bec5; padding: 5px; }
   table.summary-table th { background: #cfd8dc; }
-  table.summary-table td.name-cell { text-align: right; font-weight: 600; }
-  html[dir="ltr"] table.summary-table td.name-cell { text-align: left; }
+  table.summary-table td.name-cell { text-align: start; font-weight: 600; }
   table.summary-table td.total-cell { background:#f1f8e9; font-weight:700; color:#0d47a1; }
 
+  /* ---------- Staff list: drag handle, categories, leave ---------- */
+  table.staff-table input[type=text] { text-align: start; text-transform: none; font-weight: 500; }
+  .modal-body input { text-transform: none; }
+  th.col-name, td.col-name { min-width: 150px; }
+  table.staff-table input[type=date] { width:100%; border:1px solid #dde3e6; border-radius:4px; padding:3px 4px; font-size:12px; }
+  table.staff-table select { width:100%; border:1px solid #dde3e6; border-radius:4px; padding:3px 4px; font-size:12px; background:#fff; }
+  table.staff-table select:disabled { background:#f0f2f3; color:#78888f; }
+  td.drag-handle { cursor: grab; text-align:center; color:#90a4ae; font-size:15px; user-select:none; width:28px; }
+  td.drag-handle.disabled { cursor: not-allowed; opacity:.35; }
+  table.staff-table tr.dragging { opacity:.45; }
+  table.staff-table tr.drop-before td { box-shadow: inset 0 3px 0 var(--primary); }
+  table.staff-table tr.drop-after td { box-shadow: inset 0 -3px 0 var(--primary); }
+  .al-days { font-weight:700; color:#455a64; text-align:center; white-space:nowrap; }
+  .al-days.bad { color:#c62828; }
+  .cat-school   { background-color: #e3f2fd !important; }
+  .cat-orderly  { background-color: #fff3e0 !important; }
+  .cat-midwife  { background-color: #fce4ec !important; }
+  .cat-other    { background-color: #f3e5f5 !important; }
+
+  /* ---------- Rota cell states ---------- */
+  td input.name-input { text-align: start !important; }
+  .td-ram { background-color: #f3f9ec; }
+  .td-hol { background-color: #e0f7fa; }
+  td.td-night { background-color: var(--night-bg); }
+  .th-ram { background-color: #dcedc8 !important; }
+  .th-hol { background-color: #b2ebf2 !important; color:#006064 !important; }
+  .th-occ { cursor: help; position: relative; }
+  .th-occ::after { content:''; position:absolute; top:2px; inset-inline-end:2px; width:5px; height:5px; border-radius:50%; background:#00838f; }
+  .th-ram.th-occ:not(.th-hol)::after { background:#689f38; }
+  td.td-al { background-color:#eef1f3 !important; background-image: repeating-linear-gradient(135deg, rgba(120,144,156,.14) 0 4px, transparent 4px 8px); }
+  td.td-al input::placeholder { color:#78909c; opacity:1; font-weight:700; }
+  td.duty-cell.sel { background-color:#bbdefb !important; background-image:none; box-shadow: inset 0 0 0 2px var(--primary); }
+  body.no-select, body.no-select * { user-select:none !important; }
+
+  /* ---------- Legends ---------- */
+  .rota-legend { display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:8px; font-size:11px; color:#455a64; align-items:center; }
+  .rota-legend .sw { display:inline-block; width:14px; height:12px; border:1px solid #b0bec5; border-radius:2px; vertical-align:middle; margin-inline-end:4px; }
+
+  /* ---------- Codes legend at bottom ---------- */
+  .codes-panel { border:1px solid #cfd8dc; border-radius:6px; margin-top:12px; overflow:hidden; }
+  .codes-panel-head { display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; padding:8px 12px; background:#f5f7f8; }
+  .codes-panel-head strong { color:#37474f; }
+  .quick-codes { display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px; }
+  .code-chip { display:inline-flex; align-items:baseline; gap:5px; padding:4px 9px; border:1px solid #cfd8dc; border-radius:14px; background:#fff; cursor:pointer; font-size:11.5px; color:#455a64; }
+  .code-chip b { color:#0d47a1; font-size:12px; }
+  .code-chip small { color:#90a4ae; font-weight:600; }
+  .code-chip:hover { border-color:var(--primary); background:#f1f6fb; }
+  .codes-full { padding:0 12px 12px; }
+  .codes-hint { font-size:11px; color:#78909c; padding:0 12px 8px; }
+
+  /* ---------- Bulk selection bar ---------- */
+  .sel-bar { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); z-index:80; background:#263238; color:#fff; border-radius:10px; padding:8px 12px; box-shadow:0 8px 24px rgba(0,0,0,.25); display:flex; flex-wrap:wrap; gap:8px; align-items:center; max-width:calc(100vw - 32px); font-size:12px; }
+  .sel-bar input { width:70px; padding:5px 7px; border-radius:5px; border:1px solid #90a4ae; text-transform:uppercase; font-weight:700; text-align:center; }
+  .sel-bar input.bad { background:#ffcdd2; }
+  .sel-bar .chip { background:#37474f; border:1px solid #546e7a; color:#fff; border-radius:12px; padding:3px 8px; cursor:pointer; font-weight:700; font-size:11px; }
+  .sel-bar .chip:hover { background:#455a64; }
+  .sel-bar .x { background:transparent; border:none; color:#cfd8dc; font-size:16px; cursor:pointer; padding:0 4px; }
+
+  /* ---------- Occasion tooltip & holidays dialog ---------- */
+  .occ-tip { position:fixed; z-index:90; background:#fff; border:1px solid #b0bec5; border-radius:8px; box-shadow:0 6px 18px rgba(0,0,0,.18); padding:8px 10px; font-size:12px; max-width:280px; pointer-events:none; }
+  .occ-tip .occ-row { margin:2px 0; }
+  .occ-tip .occ-src { color:#78909c; font-size:10.5px; }
+  .occ-tip .occ-edit { color:#00838f; font-size:10.5px; margin-top:4px; }
+  .modal-back { position:fixed; inset:0; background:rgba(38,50,56,.45); z-index:100; display:flex; align-items:flex-start; justify-content:center; padding:40px 16px; overflow:auto; }
+  .modal { background:#fff; border-radius:10px; width:100%; max-width:860px; box-shadow:0 12px 40px rgba(0,0,0,.3); }
+  .modal-head { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 16px; border-bottom:1px solid #eceff1; }
+  .modal-head h3 { margin:0; color:var(--primary-dark); font-size:16px; }
+  .modal-body { padding:12px 16px; }
+  .modal-body table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .modal-body th, .modal-body td { border-bottom:1px solid #eceff1; padding:6px 5px; text-align:start; }
+  .modal-body th { background:#f5f7f8; font-size:11.5px; color:#455a64; }
+  .modal-body input[type=date], .modal-body input[type=number], .modal-body input[type=text], .modal-body select { padding:4px 6px; border:1px solid #cfd8dc; border-radius:4px; font-size:12px; }
+  .modal-body input[type=number] { width:56px; }
+  .modal-body tr.flash td { background:#fff9c4; }
+  .src-badge { font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:10px; white-space:nowrap; }
+  .src-official { background:#e8f5e9; color:#1b5e20; }
+  .src-estimate { background:#fff3e0; color:#e65100; }
+  .src-user { background:#e3f2fd; color:#0d47a1; }
+  .kind-dot { display:inline-block; width:10px; height:10px; border-radius:2px; margin-inline-end:5px; vertical-align:middle; border:1px solid #90a4ae; }
+  .modal-note { font-size:11.5px; color:#607d8b; margin-top:10px; line-height:1.5; }
+  .ram-badge { display:inline-block; margin-inline-start:6px; padding:1px 8px; border-radius:10px; background:#dcedc8; color:#33691e; font-size:10.5px; }
+
   @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     body { background: #fff; padding: 0; }
-    .no-print, .period-tabs, .staff-panel { display: none !important; }
+    .no-print, .period-tabs, .staff-panel, .notice, .codes-panel, .sel-bar, .occ-tip, .modal-back, .ram-badge { display: none !important; }
+    td.duty-cell.sel { background-color: transparent !important; box-shadow:none; }
+    .th-occ::after { display:none; }
     .rota-sheet { box-shadow: none; padding: 0; width: 100%; }
     table.rota-table { font-size: 8.5px; }
     table.rota-table th, table.rota-table td { height: 18px; padding: 1px; }
@@ -114,148 +213,191 @@
 </head>
 <body>
 
-<div class="no-print">
-  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-    <button class="btn btn-lang" onclick="toggleLang()" id="btnLang">EN / عربي</button>
-    <label id="lblStartDate"><input type="date" id="startDatePicker"> </label>
+<div class="no-print toolbar">
+  <div class="period-tabs" id="periodTabs"><button><span class="lock-dot unlocked"></span>Period 1</button><button><span class="lock-dot unlocked"></span>Period 2</button><button><span class="lock-dot unlocked"></span>Period 3</button><button><span class="lock-dot unlocked"></span>Period 4</button><button><span class="lock-dot unlocked"></span>Period 5</button><button><span class="lock-dot unlocked"></span>Period 6</button><button><span class="lock-dot unlocked"></span>Period 7</button><button><span class="lock-dot unlocked"></span>Period 8</button><button><span class="lock-dot unlocked"></span>Period 9</button><button><span class="lock-dot unlocked"></span>Period 10</button><button><span class="lock-dot unlocked"></span>Period 11</button><button class="active is-today"><span class="lock-dot unlocked"></span>Period 12</button><button><span class="lock-dot unlocked"></span>Period 13</button><div class="sep"></div><button class="tab-summary">📊 Summary</button></div>
+  <div class="tools">
+    <label id="lblStartDate"><input type="date" id="startDatePicker"> Period 1 start date:</label>
+    <button class="btn btn-lang btn-sm" onclick="toggleLang()" id="btnLang">العربية</button>
+    <button class="btn btn-sm" onclick="window.print()" id="btnPrint">Print / PDF</button>
+    <div id="settingsWrap" style="position:relative;">
+      <button class="btn btn-outline btn-sm gear" id="btnSettings" onclick="toggleSettings(event)" title="Settings">⚙</button>
+      <div class="settings-menu hidden" id="settingsMenu">
+        <button class="menu-item" onclick="openCodes()" id="btnCodes">📘 Codes</button>
+        <button class="menu-item" onclick="closeSettings();openHolidays()" id="btnHolidays">🗓 Holidays &amp; Occasions</button>
+        <button class="menu-item" onclick="closeSettings();exportCSV()" id="btnExport">Export CSV</button>
+        <button class="menu-item" onclick="closeSettings();exportJSON()" id="btnExportJson">Export JSON</button>
+        <label class="menu-item" style="cursor:pointer;"><span id="btnImportJson">Import JSON</span>
+          <input type="file" accept="application/json" style="display:none" onchange="closeSettings();importJSON(event)">
+        </label>
+        <button class="menu-item danger" onclick="closeSettings();resetAllData()" id="btnReset">Reset All Data</button>
+      </div>
+    </div>
   </div>
-  <div style="display: flex; gap: 8px; flex-wrap:wrap;">
-    <button class="btn btn-danger" onclick="resetAllData()" id="btnReset">إعادة ضبط البيانات بالكامل</button>
-    <button class="btn btn-outline" onclick="exportCSV()" id="btnExport">تصدير CSV</button>
-    <button class="btn btn-outline" onclick="exportJSON()" id="btnExportJson">Export JSON</button>
-    <label class="btn btn-outline" style="cursor:pointer;">
-      <span id="btnImportJson">Import JSON</span>
-      <input type="file" accept="application/json" style="display:none" onchange="importJSON(event)">
-    </label>
-    <button class="btn btn-success" onclick="saveToStorage()" id="btnSave">حفظ تلقائي</button>
-    <button class="btn" onclick="window.print()" id="btnPrint">طباعة / تصدير PDF</button>
-  </div>
-</div>
-
-<div class="period-tabs no-print" id="periodTabs"></div>
-
-<!-- CODES TAB -->
-<div class="rota-sheet hidden" id="codesView">
-  <h2 id="codesTitle" style="color:var(--primary-dark);margin-top:0;">دليل الرموز وساعات العمل المعتمدة</h2>
-  <div class="codes-grid" id="codesGrid"></div>
 </div>
 
 <!-- PERIOD TAB -->
-<div class="rota-sheet hidden" id="periodView">
+<div class="rota-sheet" id="periodView">
+  <div class="notice hidden" id="rangeNotice"></div>
   <div class="rota-header">
     <div class="header-group">
-      <div class="header-field"><label id="lblGov">المحافظة:</label><input type="text" id="govName" value="Dhofar / ظفار"></div>
-      <div class="header-field"><label id="lblWilayat">الولاية:</label><select id="wilayatSelect"></select></div>
-      <div class="header-field"><label id="lblInst">المستشفى:</label><select id="instSelect"></select></div>
-      <div class="header-field hidden" id="instCustomWrap"><label>&nbsp;</label><input type="text" id="instCustom" placeholder=""></div>
+      <div class="header-field"><label id="lblGov">Governorate:</label><input type="text" id="govName" value="Dhofar / ظفار"></div>
+      <div class="header-field"><label id="lblWilayat">Wilayat:</label><select id="wilayatSelect"><option value="salalah">Salalah</option><option value="taqah">Taqah</option><option value="mirbat">Mirbat</option><option value="sadah">Sadah</option><option value="thumrait">Thumrait</option><option value="muqshin">Muqshin</option><option value="shalim">Shalim Wa Juzur Al Hallaniyat</option><option value="rakhyut">Rakhyut</option><option value="dhalkut">Dhalkut</option><option value="mazyunah">Al Mazyona</option></select></div>
+      <div class="header-field"><label id="lblInst">Health Institution:</label><select id="instSelect"><option value="Sultan Qaboos Hospital - Salalah">Sultan Qaboos Hospital - Salalah</option><option value="Salalah Polyclinic">Salalah Polyclinic</option><option value="As Saada Health Center">As Saada Health Center</option><option value="Al Dahareez Health Center">Al Dahareez Health Center</option><option value="Awqad Health Center">Awqad Health Center</option><option value="Hejayf Health Center">Hejayf Health Center</option><option value="Qayrun Hayiti Health Center">Qayrun Hayiti Health Center</option><option value="Salalah Al Gharbia Health Center">Salalah Al Gharbia Health Center</option><option value="Salalah Al Jadidah Health Center">Salalah Al Jadidah Health Center</option><option value="Titam Health Center">Titam Health Center</option><option value="__other__">Other (type manually)</option></select></div>
+      <div class="header-field hidden" id="instCustomWrap"><label>&nbsp;</label><input type="text" id="instCustom" placeholder="Type health institution name"></div>
     </div>
     <div class="header-title">
-      <h2 id="hMinistry">المديرية العامة للخدمات الصحية بمحافظة ظفار</h2>
-      <h3 id="rotaTitle">Nursing Duty Rota (جدول المناوبات والدوام)</h3>
+      <h2 id="hMinistry">Sultanate of Oman - Ministry of Health</h2>
+      <h3 id="rotaTitle">Duty Rota</h3>
       <div style="margin-top: 4px; font-weight: bold; color: #455a64; font-size: 11px;">
-        <span id="lblPeriodOf">الفترة</span> <span id="lblCurPeriodNum">1</span> —
-        <span id="lblFrom">من:</span> <span id="lblDateFrom">-</span>
-        <span id="lblTo">إلى:</span> <span id="lblDateTo">-</span>
+        <span id="lblPeriodOf">Period</span> <span id="lblCurPeriodNum">12</span> —
+        <span id="lblFrom">From:</span> <span id="lblDateFrom">01/11/2026</span>
+        <span id="lblTo">To:</span> <span id="lblDateTo">28/11/2026</span>
         &nbsp;|&nbsp;
-        <label><input type="checkbox" id="ramadanMode"> <span id="lblRamadan">نظام شهر رمضان المبارك (لهذه الفترة)</span></label>
+        <label><input type="checkbox" id="ramadanMode"> <span id="lblRamadan">Ramadan schedule (this period)</span></label>
+        <span class="ram-badge hidden" id="ramBadge"></span>
       </div>
     </div>
     <div class="header-group">
-      <div class="header-field"><label id="lblDept">القسم:</label><input type="text" id="deptName" value=""></div>
-      <div class="header-field"><label id="lblDailyHrs">ساعات الدوام اليومية:</label><input type="number" id="dailyHours" value="7" style="width: 50px;"></div>
-      <div class="header-field"><label id="lblWeeklyHrs">ساعات الأسبوع:</label><input type="number" id="weeklyHours" value="35" style="width: 50px;"></div>
-    </div>
-  </div>
-
-  <!-- PER-PERIOD STAFF PANEL -->
-  <div class="staff-panel">
-    <div class="staff-panel-head">
-      <div>
-        <span class="lock-dot" id="lockDot"></span>
-        <strong id="staffPanelTitle">قائمة موظفي هذه الفترة</strong>
-        <span class="staff-status" id="staffStatus" style="margin-inline-start:8px;"></span>
-      </div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn btn-sm btn-outline" id="btnToggleMasterView" onclick="toggleMasterView()"></button>
-        <button class="btn btn-sm btn-outline" id="btnToggleStaffPanel" onclick="toggleStaffPanelOpen()"></button>
-        <button class="btn btn-sm" id="btnUnlockPeriod" onclick="unlockPeriodStaff()"></button>
-        <button class="btn btn-sm" id="btnAddStaff" onclick="addStaffRow()"></button>
-        <button class="btn btn-sm btn-success" id="btnCommitStaff" onclick="commitPeriodStaff()"></button>
-      </div>
-    </div>
-    <div class="staff-panel-body" id="staffPanelBody">
-      <p class="small" id="staffHint" style="color:#607580;margin-top:0;"></p>
-      <table class="staff-table" id="staffTable">
-        <thead>
-          <tr>
-            <th style="width:40px" id="thStaffActive">✔</th>
-            <th style="width:40px" id="thStaffSn">م</th>
-            <th style="width:90px" id="thStaffDes">الوظيفة</th>
-            <th style="width:90px" id="thStaffStno">الرقم</th>
-            <th id="thStaffName">الاسم</th>
-            <th style="width:70px" id="thStaffDel">حذف</th>
-          </tr>
-        </thead>
-        <tbody id="staffTbody"></tbody>
-      </table>
+      <div class="header-field"><label id="lblDept">Department:</label><input type="text" id="deptName" value=""></div>
+      <div class="header-field"><label id="lblDailyHrs">Daily hours:</label><input type="number" id="dailyHours" value="7" style="width: 50px;"></div>
+      <div class="header-field"><label id="lblWeeklyHrs">Weekly hours:</label><input type="number" id="weeklyHours" value="35" style="width: 50px;"></div>
     </div>
   </div>
 
   <table class="rota-table" id="rotaTable">
     <thead>
       <tr id="dateNumRow">
-        <th rowspan="2" class="col-sn" id="thSn">م</th>
-        <th rowspan="2" class="col-des" id="thDes">الوظيفة</th>
-        <th rowspan="2" class="col-stno" id="thStno">الرقم</th>
-        <th rowspan="2" class="col-name" id="thName">الاسم الثلاثي مع القبيلة</th>
-        <th colspan="2" class="th-stat" id="thActualWork">العمل الفعلي</th>
-        <th rowspan="2" class="th-stat" id="thHrsDue">ساعات مستحقة</th>
-        <th colspan="3" class="th-stat" id="thOT">العمل الإضافي</th>
-        <th rowspan="2" class="th-stat" id="thOldPo">رصيد سابق</th>
-        <th rowspan="2" class="th-stat" id="thFinalPo">الرصيد النهائي</th>
+        <th rowspan="2" class="col-sn" id="thSn">S.N</th>
+        <th rowspan="2" class="col-des" id="thDes">Desig.</th>
+        <th rowspan="2" class="col-stno" id="thStno">St.No</th>
+        <th rowspan="2" class="col-name" id="thName">Full Name</th>
+        <th class="day-col-header   ">1</th><th class="day-col-header   ">2</th><th class="day-col-header   ">3</th><th class="day-col-header   ">4</th><th class="day-col-header   ">5</th><th class="day-col-header th-fri  ">6</th><th class="day-col-header  th-sat ">7</th><th class="day-col-header   th-today">8</th><th class="day-col-header   ">9</th><th class="day-col-header   ">10</th><th class="day-col-header   ">11</th><th class="day-col-header   ">12</th><th class="day-col-header th-fri  ">13</th><th class="day-col-header  th-sat ">14</th><th class="day-col-header   ">15</th><th class="day-col-header   ">16</th><th class="day-col-header   ">17</th><th class="day-col-header   ">18</th><th class="day-col-header   ">19</th><th class="day-col-header th-fri  ">20</th><th class="day-col-header  th-sat ">21</th><th class="day-col-header   ">22</th><th class="day-col-header   ">23</th><th class="day-col-header   ">24</th><th class="day-col-header   ">25</th><th class="day-col-header   ">26</th><th class="day-col-header th-fri  ">27</th><th class="day-col-header  th-sat ">28</th><th colspan="2" class="th-stat" id="thActualWork">Actual Work</th>
+        <th rowspan="2" class="th-stat" id="thHrsDue">Hrs Due</th>
+        <th colspan="3" class="th-stat" id="thOT">Overtime</th>
+        <th rowspan="2" class="th-stat" id="thOldPo">Old PO</th>
+        <th rowspan="2" class="th-stat" id="thPoUsed">PO Used</th>
+        <th rowspan="2" class="th-stat" id="thFinalPo">Final Balance</th>
       </tr>
       <tr id="dayNameRow">
-        <th class="th-stat" id="thHrs">ساعات</th>
-        <th class="th-stat" id="thDays">أيام</th>
-        <th class="th-stat" id="thOtNormal">عادي</th>
-        <th class="th-stat" id="thOtRamadan">رمضان</th>
-        <th class="th-stat" id="thOtTotal">الإجمالي</th>
+        <th class="day-col-sub   ">Sun</th><th class="day-col-sub   ">Mon</th><th class="day-col-sub   ">Tue</th><th class="day-col-sub   ">Wed</th><th class="day-col-sub   ">Thu</th><th class="day-col-sub th-fri  ">Fri</th><th class="day-col-sub  th-sat ">Sat</th><th class="day-col-sub   th-today">Sun</th><th class="day-col-sub   ">Mon</th><th class="day-col-sub   ">Tue</th><th class="day-col-sub   ">Wed</th><th class="day-col-sub   ">Thu</th><th class="day-col-sub th-fri  ">Fri</th><th class="day-col-sub  th-sat ">Sat</th><th class="day-col-sub   ">Sun</th><th class="day-col-sub   ">Mon</th><th class="day-col-sub   ">Tue</th><th class="day-col-sub   ">Wed</th><th class="day-col-sub   ">Thu</th><th class="day-col-sub th-fri  ">Fri</th><th class="day-col-sub  th-sat ">Sat</th><th class="day-col-sub   ">Sun</th><th class="day-col-sub   ">Mon</th><th class="day-col-sub   ">Tue</th><th class="day-col-sub   ">Wed</th><th class="day-col-sub   ">Thu</th><th class="day-col-sub th-fri  ">Fri</th><th class="day-col-sub  th-sat ">Sat</th><th class="th-stat" id="thHrs">Hrs</th>
+        <th class="th-stat" id="thDays">Days</th>
+        <th class="th-stat" id="thOtNormal">Normal</th>
+        <th class="th-stat" id="thOtRamadan">Ramadan</th>
+        <th class="th-stat" id="thOtTotal">Total</th>
       </tr>
       <tr id="officialHoursRow" style="background:#f1f5f9; font-weight: bold;">
-        <td colspan="4" style="text-align: inherit; padding-inline-start: 8px;" id="lblOfficialHours">الساعات الرسمية المقررة:</td>
-        <td id="totOfficialHours" colspan="7" style="color:var(--primary-dark)">140</td>
+        <td colspan="4" style="text-align: inherit; padding-inline-start: 8px;" id="lblOfficialHours">Official required hours:</td>
+        <td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off td-fri ">0</td><td class="day-col-off  td-sat">0</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off td-fri ">0</td><td class="day-col-off  td-sat">0</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off td-fri ">0</td><td class="day-col-off  td-sat">0</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off  ">7</td><td class="day-col-off td-fri ">0</td><td class="day-col-off  td-sat">0</td><td id="totOfficialHours" colspan="8" style="color:var(--primary-dark)">140 hrs</td>
       </tr>
     </thead>
     <tbody id="rotaBody"></tbody>
     <tfoot>
-      <tr id="shiftCountsM" style="background:#e8f5e9; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountM">مجموع الصباحي (Morning):</td><td colspan="7"></td></tr>
-      <tr id="shiftCountsA" style="background:#e0f7fa; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountA">مجموع المسائي (Afternoon):</td><td colspan="7"></td></tr>
-      <tr id="shiftCountsE" style="background:#fff3e0; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountE">مجموع الليلي الأول (Evening):</td><td colspan="7"></td></tr>
-      <tr id="shiftCountsN" style="background:#ede7f6; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountN">مجموع السهر (Night):</td><td colspan="7"></td></tr>
+      <tr id="shiftCountsM" style="background:#e8f5e9; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountM">Morning shift total:</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td colspan="8"></td></tr>
+      <tr id="shiftCountsA" style="background:#e0f7fa; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountA">Afternoon shift total:</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td colspan="8"></td></tr>
+      <tr id="shiftCountsE" style="background:#fff3e0; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountE">Evening shift total:</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td colspan="8"></td></tr>
+      <tr id="shiftCountsN" style="background:#ede7f6; font-weight: bold;"><td colspan="4" style="text-align: inherit; padding-inline-start: 6px;" id="lblCountN">Night shift total:</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td colspan="8"></td></tr>
     </tfoot>
   </table>
 
+  <div class="rota-legend" id="rotaLegend"></div>
+
   <div class="rota-footer">
     <div>
-      <div><strong id="lblNotesTitle">ملاحظات الإعداد والاعتماد:</strong></div>
-      <div style="margin-top: 4px; color: #546e7a;" id="lblNotesBody"></div>
+      <div><strong id="lblNotesTitle">Preparation &amp; Approval Notes:</strong></div>
+      <div style="margin-top: 4px; color: #546e7a;" id="lblNotesBody">- Designed by: Dr.Idris Aal Jumaa - Dhofar DGHS <br>- Contact: Alwaya1987@gmail.com</div>
     </div>
     <div>
-      <div><strong id="lblPreparedBy">إعداد المنسق / المسؤول:</strong> .............................</div>
-      <div style="margin-top: 6px;"><strong id="lblDate">التاريخ:</strong> <span id="lblPreparedDate"></span></div>
+      <div><strong id="lblPreparedBy">Prepared by / Coordinator:</strong> .............................</div>
+      <div style="margin-top: 6px;"><strong id="lblDate">Date:</strong> <span id="lblPreparedDate">08/11/2026</span></div>
     </div>
     <div>
-      <div><strong id="lblApproval">اعتماد رئيس القسم:</strong> .............................</div>
-      <div style="margin-top: 6px;"><strong id="lblStamp">الختم الرسمي:</strong> .............................</div>
+      <div><strong id="lblApproval">Approved by Head of Dept.:</strong> .............................</div>
+      <div style="margin-top: 6px;"><strong id="lblStamp">Official Stamp:</strong> .............................</div>
     </div>
+  </div>
+  <!-- PER-PERIOD STAFF PANEL (below the rota) -->
+  <div class="staff-panel" style="margin-top:14px;">
+    <div class="staff-panel-head">
+      <div>
+        <span class="lock-dot unlocked" id="lockDot"></span>
+        <strong id="staffPanelTitle">Staff list for this period</strong>
+        <span class="staff-status dirty" id="staffStatus" style="margin-inline-start:8px;"></span>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-sm btn-outline" id="btnToggleStaffPanel" onclick="toggleStaffPanelOpen()">Hide list</button>
+        <button class="btn btn-sm hidden" id="btnUnlockPeriod" onclick="unlockPeriodStaff()">🔓 Unlock to edit</button>
+        <button class="btn btn-sm" id="btnAddStaff" onclick="addStaffRow()">+ Add Staff</button>
+        <button class="btn btn-sm btn-success" id="btnCommitStaff" onclick="commitPeriodStaff()">💾 Save &amp; Lock this period's list</button>
+      </div>
+    </div>
+    <div class="staff-panel-body" id="staffPanelBody">
+      <p class="small" id="staffHint" style="color:#607580;margin-top:0;"></p>
+      <div style="overflow-x:auto">
+      <table class="staff-table" id="staffTable">
+        <thead>
+          <tr>
+            <th style="width:28px" title="Drag to reorder">⋮⋮</th>
+            <th style="width:34px" id="thStaffActive">✔</th>
+            <th style="width:36px" id="thStaffSn">S.N</th>
+            <th style="width:150px" id="thStaffCat">Staff type</th>
+            <th style="width:80px" id="thStaffDes">Desig.</th>
+            <th style="width:80px" id="thStaffStno">St.No</th>
+            <th id="thStaffName">Name</th>
+            <th style="width:128px" id="thAlStart">AL start</th>
+            <th style="width:128px" id="thAlReturn">AL return</th>
+            <th style="width:60px" id="thAlDays">AL days</th>
+            <th style="width:50px" id="thStaffDel">Delete</th>
+          </tr>
+        </thead>
+        <tbody id="staffTbody"></tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CODES LEGEND (bottom) -->
+  <div class="codes-panel" id="codesPanel">
+    <div class="codes-panel-head">
+      <strong id="codesTitle">Duty &amp; Leave Codes</strong>
+      <button class="btn btn-sm btn-outline" id="btnToggleCodes" onclick="toggleFullCodes()">Show all codes ▾</button>
+    </div>
+    <div class="quick-codes" id="quickCodes"></div>
+    <div class="codes-hint" id="codesHint"></div>
+    <div class="codes-full hidden" id="codesFull"><div class="codes-grid" id="codesGrid"></div></div>
   </div>
 </div>
 
 <!-- SUMMARY TAB -->
 <div class="rota-sheet hidden" id="summaryView">
-  <h2 id="summaryTitle" style="color:var(--primary-dark)">الملخص السنوي</h2>
-  <p class="small" id="summaryHint" style="color:#607580"></p>
+  <h2 id="summaryTitle" style="color:var(--primary-dark)">Yearly Summary of every staff member who appeared in any period</h2>
+  <p class="small" id="summaryHint" style="color:#607580">Each staff member's row only shows hours for periods they were rostered in; blank cells mean they weren't on that period's list.</p>
   <div style="overflow-x:auto"><table class="summary-table" id="summaryTable"></table></div>
+</div>
+
+<!-- Bulk selection bar -->
+<div class="sel-bar no-print hidden" id="selBar">
+  <span id="selCount"></span>
+  <input type="text" id="selCode" maxlength="5" autocomplete="off">
+  <button class="btn btn-sm" id="selApply" onclick="applySelCode()">Apply</button>
+  <span id="selChips" style="display:flex;gap:4px;flex-wrap:wrap;"></span>
+  <button class="btn btn-sm btn-outline" id="selClearCells" onclick="applySelValue('')">Clear</button>
+  <button class="btn btn-sm btn-outline hidden" id="selUndo" onclick="undoBulk()">↶ Undo</button>
+  <button class="x" onclick="clearSelection()" title="Esc">✕</button>
+</div>
+<div class="occ-tip hidden" id="occTip"></div>
+<div class="modal-back hidden" id="holModal" onclick="if(event.target===this)closeHolidays()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="holTitle">Holidays &amp; Occasions</h3>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="btn btn-sm btn-outline" onclick="holYearStep(-1)">‹</button>
+        <strong id="holYear" style="min-width:44px;text-align:center;"></strong>
+        <button class="btn btn-sm btn-outline" onclick="holYearStep(1)">›</button>
+        <button class="btn btn-sm btn-outline" onclick="closeHolidays()" style="margin-inline-start:8px;">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="holBody"></div>
+  </div>
 </div>
 
 <script>
@@ -349,11 +491,13 @@ const TEXT = {
     btnSave:"حفظ تلقائي", btnPrint:"طباعة / تصدير PDF", btnLang:"English",
     lblGov:"المحافظة:", lblWilayat:"الولاية:", lblInst:"المؤسسة الصحية:", lblDept:"القسم:",
     lblDailyHrs:"ساعات الدوام اليومية:", lblWeeklyHrs:"ساعات الأسبوع:",
-    hMinistry:"المديرية العامة للخدمات الصحية بمحافظة ظفار", rotaTitle:"جدول المناوبات والدوام (Nursing Duty Rota)",
+    hMinistry:"المديرية العامة للخدمات الصحية بمحافظة ظفار", rotaTitle:"جدول المناوبات والدوام (Duty Rota)",
     lblPeriodOf:"الفترة", lblFrom:"من:", lblTo:"إلى:", lblRamadan:"نظام شهر رمضان المبارك (لهذه الفترة)",
     thSn:"م", thDes:"الوظيفة", thStno:"الرقم", thName:"الاسم الثلاثي مع القبيلة",
     thActualWork:"العمل الفعلي", thHrsDue:"ساعات مستحقة", thOT:"العمل الإضافي",
-    thOldPo:"رصيد سابق", thFinalPo:"الرصيد النهائي",
+    thOldPo:"رصيد سابق", thPoUsed:"PO مستخدم", thFinalPo:"الرصيد النهائي",
+    oldPoAutoTip:"يُرحَّل تلقائياً من الرصيد النهائي للفترة السابقة. اكتب رقماً لتعديله يدوياً، أو افرغ الخانة للعودة للترحيل التلقائي.",
+    oldPoManualTip:"قيمة يدوية (تم تجاوز الترحيل التلقائي). افرغ الخانة للعودة للترحيل التلقائي.",
     thHrs:"ساعات", thDays:"أيام", thOtNormal:"عادي", thOtRamadan:"رمضان", thOtTotal:"الإجمالي",
     lblOfficialHours:"الساعات الرسمية المقررة:",
     lblCountM:"مجموع الصباحي (Morning):", lblCountA:"مجموع المسائي (Afternoon):",
@@ -372,7 +516,7 @@ const TEXT = {
     masterPanelTitle:"القائمة الرئيسية المركزية للموظفين",
     codesTitle:"دليل الرموز وساعات العمل المعتمدة",
     tabCodes:"📘 الرموز", tabSummary:"📊 الملخص", period:"الفترة",
-    hoursUnit:"ساعة", namePlaceholder:i=>`اسم الموظف ${i}`,
+    settings:"الإعدادات", unknownCode:"رمز غير معروف — لن يُحتسب", noticeAfter:"تاريخ اليوم بعد نهاية الفترات الـ13؛ تم عرض الفترة 13. عدّل «تاريخ بداية الفترة 1» لتبدأ السنة الجديدة.", noticeBefore:"تاريخ اليوم قبل بداية الفترة 1؛ تم عرض الفترة 1. عدّل «تاريخ بداية الفترة 1».", hoursUnit:"ساعة", namePlaceholder:i=>`اسم الموظف ${i}`,
     confirmDeleteStaff:"هل تريد حذف هذا الموظف نهائياً من هذه الفترة والفترات القادمة؟ (سيتم الاحتفاظ ببياناته في الفترات السابقة)",
     confirmReset:"هل أنت تأكد من إعادة ضبط كافة البيانات وإلغاء جميع الإدخالات؟ لن يمكنك التراجع عن هذا الإجراء.",
     confirmCommit:"سيتم قفل قائمة موظفي هذه الفترة (الفترة {n}) فقط وتثبيت بياناتهم. متابعة؟",
@@ -390,11 +534,13 @@ const TEXT = {
     btnSave:"Save", btnPrint:"Print / PDF", btnLang:"العربية",
     lblGov:"Governorate:", lblWilayat:"Wilayat:", lblInst:"Health Institution:", lblDept:"Department:",
     lblDailyHrs:"Daily hours:", lblWeeklyHrs:"Weekly hours:",
-    hMinistry:"Sultanate of Oman - Ministry of Health", rotaTitle:"Nursing Duty Rota",
+    hMinistry:"Sultanate of Oman - Ministry of Health", rotaTitle:"Duty Rota",
     lblPeriodOf:"Period", lblFrom:"From:", lblTo:"To:", lblRamadan:"Ramadan schedule (this period)",
     thSn:"S.N", thDes:"Desig.", thStno:"St.No", thName:"Full Name",
     thActualWork:"Actual Work", thHrsDue:"Hrs Due", thOT:"Overtime",
-    thOldPo:"Old PO", thFinalPo:"Final Balance",
+    thOldPo:"Old PO", thPoUsed:"PO Used", thFinalPo:"Final Balance",
+    oldPoAutoTip:"Carried forward automatically from the previous period's final balance. Type a number to override manually, or clear the cell to return to automatic carry-forward.",
+    oldPoManualTip:"Manual value (automatic carry-forward overridden). Clear the cell to return to automatic.",
     thHrs:"Hrs", thDays:"Days", thOtNormal:"Normal", thOtRamadan:"Ramadan", thOtTotal:"Total",
     lblOfficialHours:"Official required hours:",
     lblCountM:"Morning shift total:", lblCountA:"Afternoon shift total:",
@@ -413,7 +559,7 @@ const TEXT = {
     masterPanelTitle:"Central Master Staff Directory",
     codesTitle:"Duty & Leave Codes Reference",
     tabCodes:"📘 Codes", tabSummary:"📊 Summary", period:"Period",
-    hoursUnit:"hrs", namePlaceholder:i=>`Staff name ${i}`,
+    settings:"Settings", unknownCode:"Unknown code — not counted", noticeAfter:"Today is after the end of the 13 periods; showing Period 13. Update the \"Period 1 start date\" to start the new year.", noticeBefore:"Today is before Period 1 starts; showing Period 1. Update the \"Period 1 start date\".", hoursUnit:"hrs", namePlaceholder:i=>`Staff name ${i}`,
     confirmDeleteStaff:"Are you sure you want to delete this staff member from this and future periods? (Previous periods will keep their historical record)",
     confirmReset:"Are you sure you want to reset all data? This will clear all entries permanently.",
     confirmCommit:"This will lock and freeze the staff roster for Period {n}. Continue?",
@@ -426,6 +572,47 @@ const TEXT = {
       "Exit":"Exit", "Rest / Off":"Rest / Off" }
   }
 };
+
+Object.assign(TEXT.en, {
+  thStaffCat:"Staff type", thAlStart:"AL start", thAlReturn:"AL return (back to work)", thAlDays:"AL days",
+  staffHint:"Tick active staff for this period. Drag ⋮⋮ to reorder — the rota follows this order. Planned annual leave (AL) is blocked automatically in the rota. Locking freezes this period's list.",
+  dragTip:"Drag to reorder", dragLockedTip:"Unlock the list to reorder",
+  alDaysFmt:(c,w)=>`${c} d`, alDaysTip:(c,w)=>`${c} calendar days · ${w} working days (excl. Fri/Sat & public holidays)`, alBad:"Return date must be after the start date",
+  alCellTip:"Planned annual leave — type a code to override this day",
+  codesTitle:"Duty & Leave Codes", showAllCodes:"Show all codes ▾", hideAllCodes:"Hide full list ▴",
+  codesHint:"Tip: select several cells (drag, Shift+click or Ctrl+click) then click a code to fill them all. With one cell focused, clicking a code fills that cell.",
+  selCount:n=>`${n} cells selected`, selApply:"Apply", selClear:"Clear", selUndo:"↶ Undo", selPlaceholder:"Code",
+  holTitle:"Holidays & Occasions — Oman", holMenu:"🗓 Holidays & Occasions",
+  holCols:["Occasion","Type","Start date","Days","End","Source",""],
+  kindHoliday:"Public holiday", kindObservance:"Observance",
+  srcOfficial:"Official", srcEstimate:"Estimate", srcUser:"Edited",
+  holReset:"Reset", holHide:"Hide", holShow:"Show", holDelete:"Delete", holAdd:"+ Add", holNewName:"Occasion name",
+  holHidden:"(hidden)", holClickEdit:"Click the date to edit",
+  holNote:"2026 dates follow the Ministry of Labour announcements (Oman Observer, Times of Oman, Gulf News). Other years are estimates from the Royal Decree holiday rules and the Umm al-Qura Hijri calendar; Oman confirms Islamic dates by moon sighting, so they can move by a day. Adjust any date here once it is officially announced.",
+  legendHol:"Public holiday", legendRam:"Ramadan", legendAl:"Annual leave (AL)", legendFri:"Friday", legendSat:"Saturday",
+  ramBadge:(a,b)=>`🌙 Ramadan ${a} – ${b}`,
+  cats:{ nurse:"Nurse", school:"School Nurse", orderly:"Medical Orderly", midwife:"Midwife", other:"Other" }
+});
+Object.assign(TEXT.ar, {
+  thStaffCat:"الفئة", thAlStart:"بداية الإجازة", thAlReturn:"تاريخ العودة للعمل", thAlDays:"أيام الإجازة",
+  staffHint:"حدد الموظفين المفعّلين لهذه الفترة. اسحب ⋮⋮ لإعادة الترتيب — الجدول يتبع هذا الترتيب. الإجازة السنوية المخططة تُحجز تلقائياً في الجدول. القفل يجمّد قائمة هذه الفترة.",
+  dragTip:"اسحب لإعادة الترتيب", dragLockedTip:"افتح القفل لإعادة الترتيب",
+  alDaysFmt:(c,w)=>`${c} يوم`, alDaysTip:(c,w)=>`${c} يوماً تقويمياً · ${w} يوم عمل (بدون الجمعة والسبت والعطل الرسمية)`, alBad:"تاريخ العودة يجب أن يكون بعد تاريخ البداية",
+  alCellTip:"إجازة سنوية مخططة — اكتب رمزاً لتغيير هذا اليوم",
+  codesTitle:"رموز الدوام والإجازات", showAllCodes:"عرض جميع الرموز ▾", hideAllCodes:"إخفاء القائمة الكاملة ▴",
+  codesHint:"تلميح: حدد عدة خلايا (بالسحب أو Shift+نقر أو Ctrl+نقر) ثم انقر على رمز لتعبئتها كلها. عند تحديد خلية واحدة، النقر على الرمز يعبئها.",
+  selCount:n=>`${n} خلية محددة`, selApply:"تطبيق", selClear:"مسح", selUndo:"↶ تراجع", selPlaceholder:"رمز",
+  holTitle:"العطل والمناسبات — سلطنة عُمان", holMenu:"🗓 العطل والمناسبات",
+  holCols:["المناسبة","النوع","تاريخ البداية","الأيام","النهاية","المصدر",""],
+  kindHoliday:"عطلة رسمية", kindObservance:"مناسبة",
+  srcOfficial:"رسمي", srcEstimate:"تقديري", srcUser:"معدّل",
+  holReset:"استرجاع", holHide:"إخفاء", holShow:"إظهار", holDelete:"حذف", holAdd:"+ إضافة", holNewName:"اسم المناسبة",
+  holHidden:"(مخفية)", holClickEdit:"انقر على التاريخ للتعديل",
+  holNote:"تواريخ 2026 حسب إعلانات وزارة العمل (عُمان أوبزرفر، تايمز أوف عُمان، جلف نيوز). السنوات الأخرى تقديرية وفق المرسوم السلطاني للعطل الرسمية وتقويم أم القرى؛ تُثبَّت التواريخ الهجرية في عُمان برؤية الهلال وقد تختلف بيوم. عدّل أي تاريخ هنا عند الإعلان الرسمي.",
+  legendHol:"عطلة رسمية", legendRam:"رمضان", legendAl:"إجازة سنوية (AL)", legendFri:"الجمعة", legendSat:"السبت",
+  ramBadge:(a,b)=>`🌙 رمضان ${a} – ${b}`,
+  cats:{ nurse:"ممرض/ة", school:"ممرض/ة مدرسي", orderly:"مساعد خدمات طبية", midwife:"قابلة", other:"أخرى" }
+});
 let LANG = 'ar';
 
 const DAYS = {
@@ -487,17 +674,49 @@ const SHIFT_HOURS = {}; Object.keys(CODES).forEach(k=> SHIFT_HOURS[k]=CODES[k].h
 const NUM_PERIODS = 13;
 const ROSTER_DAYS = 28;
 const STORE_KEY = 'SmartDutyRota_v22_Data';
+const PO_CODE = 'PO';   // each PO code in the table = 1 day deducted from the staff's PO balance
+
+const EXIT_CODES = new Set(Object.keys(CODES).filter(k=>CODES[k].c==='Exit'));
+/* Which shift rows (footer counts) each code is counted in. Combined codes count in each shift they cover. */
+const SHIFT_GROUPS = {
+  // FD = 24h (M+A+N), R19 = A+E+N in Ramadan, HD1 = first half day (M+A), HD2 = second half day (E+N)
+  M:['M','M1','M2','M8','MC','RM1','RM2','RM5','RM6','RM7','RM8','MC5','MC6','MC7','MA','ME','MN7','MN',
+     'FD','FD1','FD2','RFD','RF1','RF2','HD1','RH1'],
+  A:['A','A1','A2','A8','RA1','RA2','RA5','RA6','RA7','RA8','MA','AN',
+     'FD','FD1','FD2','RFD','RF1','RF2','R19','HD1','RH1'],
+  E:['E','E1','E2','E8','E10','RE1','RE2','RE5','RE6','RE7','RE8','ME','EN',
+     'R19','HD2','RH2'],
+  N:['N','N7','N8','N10','RN','RN5','RN6','RN7','RN8','RN9','MN7','MN','AN','EN',
+     'FD','FD1','FD2','RFD','RF1','RF2','R19','HD2','RH2']
+};
+
+function defaultStartDate(){
+  const d = new Date(); d.setMonth(0,1); d.setHours(12,0,0,0);
+  d.setDate(d.getDate() - d.getDay());            // Sunday on/before 1 Jan of the current year
+  const p = x => String(x).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+let rangeStatus = 'in';
+function detectCurrentPeriod(){
+  const start = new Date(state.globalStartDate + 'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const diff = Math.round((today - start) / 86400000);
+  if(diff < 0) return { n:1, status:'before' };
+  const n = Math.floor(diff / ROSTER_DAYS) + 1;
+  if(n > NUM_PERIODS) return { n:NUM_PERIODS, status:'after' };
+  return { n, status:'in' };
+}
 
 /* ================= STATE ================= */
 let state = {
   lang: 'ar',
   gov: 'Dhofar / ظفار', wilayatKey: 'salalah', instKey: DHOFAR_INSTITUTIONS.salalah[0].en, instCustom:'',
   dept: 'LR',
-  globalStartDate: '2025-01-05',
+  globalStartDate: defaultStartDate(),
   nextStaffId: 1,
   masterStaff: [],      // Array of master staff objects: [{id, des, stno, name}]
   viewMasterMode: false, // Toggle between Period Staff view and Master Directory view
-  periods: {},          // periods[n] = { ramadan:false, locked:false, panelOpen:true, activeMap:{ [id]: boolean }, snapshots:{ [id]: {id, des, stno, name} }, duty:{[id]:{oldPo,duties:[28]}} }
+  periods: {},          // periods[n] = { ramadan, locked, panelOpen, activeMap, snapshots, staff, duty:{[id]:{oldPoOverride?,duties:[28]}} }
   currentPeriod: 1,
   viewingTab: 'period'  // 'codes' | 'summary' | 'period'
 };
@@ -508,7 +727,7 @@ function syncUnlockedPeriodStaff(n){
 
   p.staff = state.masterStaff.map(m => {
     const isActive = (p.activeMap && p.activeMap[m.id] !== undefined) ? p.activeMap[m.id] : true;
-    return { id: m.id, des: m.des, stno: m.stno, name: m.name, active: isActive };
+    return { id: m.id, des: m.des, stno: m.stno, name: m.name, cat: m.cat||'nurse', alStart: m.alStart||'', alReturn: m.alReturn||'', active: isActive };
   });
 
   if(p.snapshots){
@@ -518,13 +737,33 @@ function syncUnlockedPeriodStaff(n){
         const snap = p.snapshots[id];
         const isActive = (p.activeMap && p.activeMap[id] !== undefined) ? p.activeMap[id] : false;
         if(isActive){
-          p.staff.push({ id: snap.id, des: snap.des, stno: snap.stno, name: snap.name, active: true });
+          p.staff.push({ id: snap.id, des: snap.des, stno: snap.stno, name: snap.name, cat: snap.cat||'nurse', alStart: snap.alStart||'', alReturn: snap.alReturn||'', active: true });
         }
       }
     });
   }
+
+  // Custom order (set by drag & drop in the staff list)
+  if(Array.isArray(p.order) && p.order.length){
+    const pos = {}; p.order.forEach((id,i)=> pos[id] = i);
+    p.staff = p.staff.map((s,i)=>({ s, k: pos[s.id]!==undefined ? pos[s.id] : 1e6+i }))
+                     .sort((a,b)=>a.k-b.k).map(x=>x.s);
+  }
 }
 
+/* Live staff info: master record if it exists, else the period's own copy */
+function masterOf(id){ return state.masterStaff.find(m=>m.id===id) || null; }
+function staffCat(st){ const m = masterOf(st.id) || st; return m.cat || 'nurse'; }
+function staffLeave(st){ const m = masterOf(st.id) || st; return { s: m.alStart||'', r: m.alReturn||'' }; }
+function ymd(d){ const p=x=>String(x).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function parseYmd(str){ const [y,m,d] = str.split('-').map(Number); return new Date(y, m-1, d, 12); }
+function addDaysYmd(str, n){ const d = parseYmd(str); d.setDate(d.getDate()+n); return ymd(d); }
+function daysBetween(a, b){ return Math.round((parseYmd(b) - parseYmd(a)) / 86400000); }
+function fmtDM(str){ const [y,m,d]=str.split('-'); return d+'/'+m; }
+function fmtDMY(str){ const [y,m,d]=str.split('-'); return d+'/'+m+'/'+y; }
+function isOnLeave(st, dateStr){ const L = staffLeave(st); return !!(L.s && L.r && L.s <= dateStr && dateStr < L.r); }
+function catClass(cat){ return (cat && cat!=='nurse') ? 'cat-'+cat : ''; }
+const STAFF_CATS = ['nurse','school','orderly','midwife','other'];
 function ensurePeriod(n){
   if(state.periods[n]) {
     syncUnlockedPeriodStaff(n);
@@ -532,14 +771,21 @@ function ensurePeriod(n){
     return;
   }
   
-  const initialActiveMap = {};
-  state.masterStaff.forEach(m => { initialActiveMap[m.id] = true; });
+  const initialActiveMap = {}, autoOff = {};
+  state.masterStaff.forEach(m => {
+    const ex = findExit(m.id);
+    const exited = !!(ex && ex.period < n);       // left the institution in an earlier period
+    initialActiveMap[m.id] = !exited;
+    if(exited) autoOff[m.id] = true;
+  });
 
   state.periods[n] = {
     ramadan: false,
     locked: false,
     panelOpen: true,
     activeMap: initialActiveMap,
+    autoOff: autoOff,
+    manualOn: {},
     snapshots: {},
     staff: [],
     duty: {}
@@ -551,7 +797,7 @@ function ensurePeriod(n){
 
 function ensureDutyRecords(n){
   const p = state.periods[n];
-  p.staff.forEach(s=>{ if(!p.duty[s.id]) p.duty[s.id] = { oldPo:0, duties:new Array(ROSTER_DAYS).fill('') }; });
+  p.staff.forEach(s=>{ if(!p.duty[s.id]) p.duty[s.id] = { duties:new Array(ROSTER_DAYS).fill('') }; });
 }
 
 function ensureAllPeriodsUpTo(n){ for(let i=1;i<=n;i++) ensurePeriod(i); }
@@ -563,6 +809,96 @@ function periodStartDate(n){
 }
 function periodEndDate(n){ const d = periodStartDate(n); d.setDate(d.getDate()+ROSTER_DAYS-1); return d; }
 
+/* ================= EXIT CODES (TRA / TRO / RET / RES / TER) =================
+   When a staff member gets an exit code, they are automatically un-ticked in every LATER unlocked period
+   (you can still re-tick them manually). If the exit code is removed, the auto un-tick is undone. */
+function findExit(id){
+  for(let n=1;n<=NUM_PERIODS;n++){
+    const p = state.periods[n];
+    if(!p || !p.duty || !p.duty[id] || !p.staff) continue;
+    if(!p.staff.some(s=>s.id===id && s.active)) continue;
+    const d = p.duty[id].duties.findIndex(c=>EXIT_CODES.has((c||'').trim()));
+    if(d !== -1) return { period:n, day:d };
+  }
+  return null;
+}
+function propagateExit(id){
+  const ex = findExit(id);
+  for(let m=1;m<=NUM_PERIODS;m++){
+    const p = state.periods[m];
+    if(!p || p.locked) continue;
+    if(!p.autoOff) p.autoOff = {};
+    if(!p.manualOn) p.manualOn = {};
+    if(!p.activeMap) p.activeMap = {};
+    if(ex && m > ex.period){
+      if(!p.manualOn[id] && p.activeMap[id] !== false){ p.activeMap[id] = false; p.autoOff[id] = true; }
+    } else if(p.autoOff[id]){
+      p.activeMap[id] = true; delete p.autoOff[id];
+    }
+    syncUnlockedPeriodStaff(m);
+  }
+}
+
+/* ================= PO BALANCE ENGINE =================
+   Balance chain per staff member, period by period:
+     Opening(n)  = manual override if the user typed one, otherwise Final(n-1)   (Period 1 starts at 0)
+     Final(n)    = Opening(n) + PO earned from overtime in n  −  number of "PO" codes used in n
+   Nothing is stored except the optional manual override, so changing any earlier period
+   automatically updates every later period.
+*/
+function round2(x){ return Math.round((x + Number.EPSILON) * 100) / 100; }
+
+function periodWork(p, rec){
+  const isRamadan = !!p.ramadan;
+  const stdDay = isRamadan ? 5 : 7;
+  const dueHours = isRamadan ? 100 : 140;
+  let workedHours = 0, workedDays = 0, poUsed = 0;
+  if(rec && rec.duties){
+    rec.duties.forEach(code=>{
+      code = (code||'').trim();
+      if(!code) return;
+      if(code === PO_CODE) poUsed++;
+      if(SHIFT_HOURS.hasOwnProperty(code)){
+        const hrs = SHIFT_HOURS[code];
+        workedHours += hrs;
+        if(hrs>0) workedDays++;
+      }
+    });
+  }
+  let otNormal = 0, otRamadan = 0;
+  if(workedHours > dueHours){
+    if(isRamadan) otRamadan = workedHours - dueHours;
+    else otNormal = workedHours - dueHours;
+  }
+  const totalOt = otNormal + otRamadan;
+  const earned = totalOt > 0 ? totalOt / stdDay : 0;
+  return { workedHours, workedDays, dueHours, otNormal, otRamadan, totalOt, earned, poUsed };
+}
+
+function hasOverride(rec){
+  return rec && rec.oldPoOverride !== undefined && rec.oldPoOverride !== null && !isNaN(parseFloat(rec.oldPoOverride));
+}
+
+function getPoBalance(n, id){
+  let bal = 0;
+  let result = { opening:0, earned:0, used:0, final:0, overridden:false };
+  for(let k=1; k<=n; k++){
+    const p = state.periods[k];
+    const rec = (p && p.duty) ? p.duty[id] : null;
+    let opening = bal, overridden = false;
+    if(hasOverride(rec)){ opening = parseFloat(rec.oldPoOverride); overridden = true; }
+    let earned = 0, used = 0;
+    const isActive = !!(p && p.staff && p.staff.some(s => s.id === id && s.active));
+    if(isActive && rec){
+      const w = periodWork(p, rec);
+      earned = w.earned; used = w.poUsed;
+    }
+    bal = round2(opening + earned - used);
+    if(k === n) result = { opening: round2(opening), earned: round2(earned), used, final: bal, overridden };
+  }
+  return result;
+}
+
 /* ================= LANGUAGE ================= */
 function applyStaticText(){
   const t = TEXT[LANG];
@@ -571,18 +907,18 @@ function applyStaticText(){
   document.title = t.pageTitle;
   const map = {
     btnReset:t.btnReset, btnExport:t.btnExport, btnExportJson:t.btnExportJson,
-    btnImportJson:t.btnImportJson, btnSave:t.btnSave, btnPrint:t.btnPrint, btnLang:t.btnLang,
+    btnImportJson:t.btnImportJson, btnCodes:t.tabCodes, btnPrint:t.btnPrint, btnLang:t.btnLang,
     lblGov:t.lblGov, lblWilayat:t.lblWilayat, lblInst:t.lblInst, lblDept:t.lblDept,
     lblDailyHrs:t.lblDailyHrs, lblWeeklyHrs:t.lblWeeklyHrs, hMinistry:t.hMinistry, rotaTitle:t.rotaTitle,
     lblPeriodOf:t.lblPeriodOf, lblFrom:t.lblFrom, lblTo:t.lblTo, lblRamadan:t.lblRamadan,
     thSn:t.thSn, thDes:t.thDes, thStno:t.thStno, thName:t.thName,
-    thActualWork:t.thActualWork, thHrsDue:t.thHrsDue, thOT:t.thOT, thOldPo:t.thOldPo, thFinalPo:t.thFinalPo,
+    thActualWork:t.thActualWork, thHrsDue:t.thHrsDue, thOT:t.thOT, thOldPo:t.thOldPo, thPoUsed:t.thPoUsed, thFinalPo:t.thFinalPo,
     thHrs:t.thHrs, thDays:t.thDays, thOtNormal:t.thOtNormal, thOtRamadan:t.thOtRamadan, thOtTotal:t.thOtTotal,
     lblOfficialHours:t.lblOfficialHours, lblCountM:t.lblCountM, lblCountA:t.lblCountA, lblCountE:t.lblCountE, lblCountN:t.lblCountN,
     lblNotesTitle:t.lblNotesTitle, lblPreparedBy:t.lblPreparedBy, lblDate:t.lblDate, lblApproval:t.lblApproval, lblStamp:t.lblStamp,
     summaryTitle:t.summaryTitle, summaryHint:t.summaryHint,
-    staffPanelTitle: state.viewMasterMode ? t.masterPanelTitle : t.staffPanelTitle,
-    staffHint: state.viewMasterMode ? t.masterStaffHint : t.staffHint,
+    staffPanelTitle: t.staffPanelTitle, staffHint: t.staffHint, btnHolidays: t.holMenu,
+    thStaffCat:t.thStaffCat, thAlStart:t.thAlStart, thAlReturn:t.thAlReturn, thAlDays:t.thAlDays, codesHint:t.codesHint,
     btnAddStaff:t.btnAddStaff, btnCommitStaff:t.btnCommitStaff,
     thStaffActive:t.thStaffActive, thStaffSn:t.thStaffSn, thStaffDes:t.thStaffDes, thStaffStno:t.thStaffStno, thStaffName:t.thStaffName, thStaffDel:t.thStaffDel,
     codesTitle:t.codesTitle
@@ -592,6 +928,7 @@ function applyStaticText(){
   const lblStart = document.getElementById('lblStartDate');
   lblStart.childNodes[lblStart.childNodes.length-1].textContent = ' ' + t.lblStartDate;
   document.getElementById('instCustom').placeholder = t.customInstPlaceholder;
+  document.getElementById('btnSettings').title = t.settings;
   renderWilayatSelect();
   renderInstSelect();
 }
@@ -662,19 +999,24 @@ function currentInstName(){
   return LANG==='ar' ? found.ar : found.en;
 }
 
+/* ================= SETTINGS MENU ================= */
+function toggleSettings(e){ if(e) e.stopPropagation(); document.getElementById('settingsMenu').classList.toggle('hidden'); }
+function closeSettings(){ document.getElementById('settingsMenu').classList.add('hidden'); }
+function openCodes(){
+  closeSettings();
+  if(state.viewingTab!=='period'){ state.viewingTab='period'; renderTabs(); renderCurrentView(); }
+  codesFullOpen = true; renderCodesPanel();
+  document.getElementById('codesPanel').scrollIntoView({behavior:'smooth', block:'start'});
+}
+document.addEventListener('click', e=>{ if(!e.target.closest('#settingsWrap')) closeSettings(); });
+
 /* ================= TABS ================= */
 function renderTabs(){
   const t = TEXT[LANG];
   const wrap = document.getElementById('periodTabs');
   wrap.innerHTML = '';
 
-  const codesBtn = document.createElement('button');
-  codesBtn.textContent = t.tabCodes; codesBtn.className='tab-codes'+(state.viewingTab==='codes'?' active':'');
-  codesBtn.onclick = ()=>{ state.viewingTab='codes'; renderTabs(); renderCurrentView(); };
-  wrap.appendChild(codesBtn);
-
-  const sep = document.createElement('div'); sep.className='sep'; wrap.appendChild(sep);
-
+  const cp = detectCurrentPeriod();
   for(let n=1;n<=NUM_PERIODS;n++){
     const b = document.createElement('button');
     const dot = document.createElement('span');
@@ -682,6 +1024,7 @@ function renderTabs(){
     b.appendChild(dot);
     b.appendChild(document.createTextNode(t.period + ' ' + n));
     if(state.viewingTab==='period' && state.currentPeriod===n) b.classList.add('active');
+    if(cp.status==='in' && cp.n===n) b.classList.add('is-today');
     b.onclick = ()=>{ state.viewingTab='period'; state.currentPeriod=n; ensureAllPeriodsUpTo(n); renderTabs(); renderCurrentView(); };
     wrap.appendChild(b);
   }
@@ -694,19 +1037,18 @@ function renderTabs(){
 }
 
 function renderCurrentView(){
-  document.getElementById('codesView').classList.add('hidden');
   document.getElementById('periodView').classList.add('hidden');
   document.getElementById('summaryView').classList.add('hidden');
+  if(state.viewingTab==='codes') state.viewingTab = 'period';
+  clearSelection(true);
 
-  if(state.viewingTab==='codes'){ document.getElementById('codesView').classList.remove('hidden'); renderCodesTab(); }
-  else if(state.viewingTab==='summary'){ document.getElementById('summaryView').classList.remove('hidden'); renderSummary(); }
+  if(state.viewingTab==='summary'){ document.getElementById('summaryView').classList.remove('hidden'); renderSummary(); }
   else {
     ensureAllPeriodsUpTo(state.currentPeriod);
     document.getElementById('periodView').classList.remove('hidden');
     renderPeriod(state.currentPeriod);
   }
 }
-
 /* ================= HEADER FIELDS SYNC ================= */
 function bindHeaderInputsOnce(){
   ['govName','deptName','dailyHours','weeklyHours'].forEach(id=>{
@@ -726,7 +1068,11 @@ function fillHeaderFromState(){
 }
 function onGlobalStartChange(){
   state.globalStartDate = startDatePicker.value || state.globalStartDate;
+  const cp = detectCurrentPeriod();
+  rangeStatus = cp.status; state.currentPeriod = cp.n; state.viewingTab = 'period';
+  ensureAllPeriodsUpTo(cp.n);
   saveToStorage(true);
+  renderTabs();
   renderCurrentView();
 }
 function toggleRamadan(){
@@ -743,11 +1089,7 @@ function toggleStaffPanelOpen(){
   saveToStorage(true);
   renderPeriod(state.currentPeriod);
 }
-function toggleMasterView(){
-  state.viewMasterMode = !state.viewMasterMode;
-  saveToStorage(true);
-  renderPeriod(state.currentPeriod);
-}
+
 function unlockPeriodStaff(){
   const t = TEXT[LANG];
   if(!confirm(t.confirmUnlock)) return;
@@ -764,7 +1106,7 @@ function commitPeriodStaff(){
   
   p.snapshots = {};
   p.staff.forEach(s => {
-    p.snapshots[s.id] = { id: s.id, des: s.des, stno: s.stno, name: s.name, active: s.active };
+    p.snapshots[s.id] = { id: s.id, des: s.des, stno: s.stno, name: s.name, cat: s.cat, alStart: s.alStart, alReturn: s.alReturn, active: s.active };
   });
 
   ensureDutyRecords(state.currentPeriod);
@@ -777,7 +1119,7 @@ function commitPeriodStaff(){
 
 function addStaffRow(){
   const id = state.nextStaffId++;
-  const newStaff = { id, des:'SN', stno:'', name:'' };
+  const newStaff = { id, des:'SN', stno:'', name:'', cat:'nurse', alStart:'', alReturn:'' };
   
   state.masterStaff.push(newStaff);
 
@@ -858,23 +1200,30 @@ function toggleStaffActive(idx, checked){
     s.active = checked;
     if(!p.activeMap) p.activeMap = {};
     p.activeMap[s.id] = checked;
+    if(!p.manualOn) p.manualOn = {};
+    if(!p.autoOff) p.autoOff = {};
+    if(checked){ p.manualOn[s.id] = true; delete p.autoOff[s.id]; } else { delete p.manualOn[s.id]; }
   }
   saveToStorage(true);
   renderStaffStatusBar();
   renderPeriod(state.currentPeriod);
 }
 
-function updateStaffField(id, field, val){
+function updateStaffField(id, field, val, rerender){
   const masterItem = state.masterStaff.find(m => m.id === id);
-  if(masterItem){
-    masterItem[field] = val;
-  }
+  if(masterItem) masterItem[field] = val;
+  // also patch this period's copy (covers staff that exist only in a snapshot)
+  const cur = state.periods[state.currentPeriod];
+  if(cur && cur.staff){ const own = cur.staff.find(s=>s.id===id); if(own) own[field] = val; }
 
   for(let n=1; n<=NUM_PERIODS; n++){
     const p = state.periods[n];
     if(!p || p.locked) continue;
     syncUnlockedPeriodStaff(n);
   }
+
+  saveToStorage(true);
+  if(rerender){ renderPeriod(state.currentPeriod); return; }
 
   // Update table inputs directly without wiping focus
   const row = document.querySelector(`#rotaBody tr[data-id="${id}"]`);
@@ -883,64 +1232,110 @@ function updateStaffField(id, field, val){
     if(field === 'stno'){ const el = row.querySelector('.stno-input'); if(el) el.value = val; }
     if(field === 'name'){ const el = row.querySelector('.name-input'); if(el) el.value = val; }
   }
-
-  saveToStorage(true);
 }
-
+let dragStaffId = null;
 function renderStaffPanel(){
   const t = TEXT[LANG];
   const p = state.periods[state.currentPeriod];
   const locked = p.locked;
+  state.viewMasterMode = false;
 
-  document.getElementById('staffPanelTitle').textContent = state.viewMasterMode ? t.masterPanelTitle : t.staffPanelTitle;
-  document.getElementById('staffHint').textContent = state.viewMasterMode ? t.masterStaffHint : t.staffHint;
-  document.getElementById('btnToggleMasterView').textContent = state.viewMasterMode ? t.btnHideMaster : t.btnShowMaster;
-
+  document.getElementById('staffPanelTitle').textContent = t.staffPanelTitle;
+  document.getElementById('staffHint').textContent = t.staffHint;
   document.getElementById('lockDot').className = 'lock-dot ' + (locked?'locked':'unlocked');
   document.getElementById('btnToggleStaffPanel').textContent = p.panelOpen ? t.btnToggleHide : t.btnToggleShow;
   document.getElementById('staffPanelBody').classList.toggle('hidden', !p.panelOpen);
   document.getElementById('btnUnlockPeriod').classList.toggle('hidden', !locked);
   document.getElementById('btnUnlockPeriod').textContent = t.btnUnlock;
-  document.getElementById('btnAddStaff').classList.toggle('hidden', locked && !state.viewMasterMode);
+  document.getElementById('btnAddStaff').classList.toggle('hidden', locked);
   document.getElementById('btnAddStaff').textContent = t.btnAddStaff;
-  document.getElementById('btnCommitStaff').classList.toggle('hidden', locked || state.viewMasterMode);
+  document.getElementById('btnCommitStaff').classList.toggle('hidden', locked);
   document.getElementById('btnCommitStaff').textContent = t.btnCommitStaff;
 
   const tbody = document.getElementById('staffTbody');
   tbody.innerHTML = '';
 
-  const listToRender = state.viewMasterMode ? state.masterStaff : p.staff;
-
-  listToRender.forEach((st, idx)=>{
+  p.staff.forEach((st, idx)=>{
+    const live = masterOf(st.id) || st;
+    const cat = live.cat || 'nurse';
     const tr = document.createElement('tr');
+    tr.dataset.id = st.id;
+    if(catClass(cat)) tr.classList.add(catClass(cat));
+
+    // drag handle
+    const tdH = document.createElement('td'); tdH.className = 'drag-handle' + (locked ? ' disabled' : ''); tdH.textContent = '⋮⋮';
+    tdH.title = locked ? t.dragLockedTip : t.dragTip;
+    tdH.onmousedown = ()=>{ if(!locked) tr.draggable = true; };
+    tdH.onmouseup = ()=>{ tr.draggable = false; };
+    tr.appendChild(tdH);
+    tr.ondragstart = e=>{ dragStaffId = st.id; tr.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain', String(st.id)); }catch(_){} };
+    tr.ondragend = ()=>{ tr.draggable = false; tr.classList.remove('dragging'); clearDropMarks(); dragStaffId = null; };
+    tr.ondragover = e=>{
+      if(dragStaffId===null || dragStaffId===st.id) return;
+      e.preventDefault();
+      const r = tr.getBoundingClientRect(); const before = (e.clientY - r.top) < r.height/2;
+      clearDropMarks(); tr.classList.add(before ? 'drop-before' : 'drop-after');
+    };
+    tr.ondrop = e=>{
+      e.preventDefault();
+      const before = tr.classList.contains('drop-before');
+      const from = dragStaffId; clearDropMarks();
+      if(from!==null) moveStaff(from, st.id, before);
+    };
 
     const tdActive = document.createElement('td'); tdActive.style.textAlign='center';
-    const cb = document.createElement('input'); cb.type='checkbox'; 
-    cb.checked = state.viewMasterMode ? true : !!st.active; 
-    cb.disabled = locked || state.viewMasterMode;
+    const cb = document.createElement('input'); cb.type='checkbox';
+    cb.checked = !!st.active; cb.disabled = locked;
     cb.onchange = ()=> toggleStaffActive(idx, cb.checked);
     tdActive.appendChild(cb); tr.appendChild(tdActive);
 
     const tdSn = document.createElement('td'); tdSn.style.textAlign='center'; tdSn.textContent = idx+1; tr.appendChild(tdSn);
 
+    const tdCat = document.createElement('td');
+    const selCat = document.createElement('select'); selCat.disabled = locked;
+    STAFF_CATS.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=t.cats[c]; if(c===cat) o.selected=true; selCat.appendChild(o); });
+    selCat.onchange = ()=> updateStaffField(st.id, 'cat', selCat.value, true);
+    tdCat.appendChild(selCat); tr.appendChild(tdCat);
+
     const tdDes = document.createElement('td');
-    const inpDes = document.createElement('input'); inpDes.type='text'; inpDes.value = st.des||''; inpDes.disabled = locked && !state.viewMasterMode;
+    const inpDes = document.createElement('input'); inpDes.type='text'; inpDes.dir='auto'; inpDes.value = st.des||''; inpDes.disabled = locked;
     inpDes.oninput = ()=> updateStaffField(st.id, 'des', inpDes.value);
     tdDes.appendChild(inpDes); tr.appendChild(tdDes);
 
     const tdStno = document.createElement('td');
-    const inpStno = document.createElement('input'); inpStno.type='text'; inpStno.value = st.stno||''; inpStno.disabled = locked && !state.viewMasterMode;
+    const inpStno = document.createElement('input'); inpStno.type='text'; inpStno.dir='auto'; inpStno.value = st.stno||''; inpStno.disabled = locked;
     inpStno.oninput = ()=> updateStaffField(st.id, 'stno', inpStno.value);
     tdStno.appendChild(inpStno); tr.appendChild(tdStno);
 
     const tdName = document.createElement('td');
-    const inpName = document.createElement('input'); inpName.type='text'; inpName.value = st.name||''; inpName.disabled = locked && !state.viewMasterMode;
+    const inpName = document.createElement('input'); inpName.type='text'; inpName.dir='auto'; inpName.value = st.name||''; inpName.disabled = locked;
     inpName.placeholder = t.namePlaceholder(idx+1);
     inpName.oninput = ()=> updateStaffField(st.id, 'name', inpName.value);
     tdName.appendChild(inpName); tr.appendChild(tdName);
 
+    // Planned annual leave (always editable; lives on the staff member, not on the period)
+    const tdAlS = document.createElement('td');
+    const inpAlS = document.createElement('input'); inpAlS.type='date'; inpAlS.value = live.alStart||'';
+    tdAlS.appendChild(inpAlS); tr.appendChild(tdAlS);
+    const tdAlR = document.createElement('td');
+    const inpAlR = document.createElement('input'); inpAlR.type='date'; inpAlR.value = live.alReturn||'';
+    tdAlR.appendChild(inpAlR); tr.appendChild(tdAlR);
+    const tdAlD = document.createElement('td'); tdAlD.className='al-days';
+    fillLeaveDays(tdAlD, live.alStart, live.alReturn);
+    tr.appendChild(tdAlD);
+    const onLeaveChange = ()=>{
+      const m = masterOf(st.id) || st;
+      m.alStart = inpAlS.value; m.alReturn = inpAlR.value;
+      if(m !== st){ st.alStart = inpAlS.value; st.alReturn = inpAlR.value; }
+      for(let n=1;n<=NUM_PERIODS;n++){ const pp=state.periods[n]; if(pp && !pp.locked) syncUnlockedPeriodStaff(n); }
+      if(inpAlS.value && !inpAlR.value){ inpAlR.min = addDaysYmd(inpAlS.value,1); }
+      saveToStorage(true);
+      renderPeriod(state.currentPeriod);
+    };
+    inpAlS.onchange = onLeaveChange; inpAlR.onchange = onLeaveChange;
+
     const tdDel = document.createElement('td'); tdDel.style.textAlign='center';
-    if(!locked || state.viewMasterMode){
+    if(!locked){
       const btnDel = document.createElement('button'); btnDel.className='btn btn-danger btn-sm'; btnDel.textContent='✕';
       btnDel.onclick = ()=> deleteStaffRow(idx);
       tdDel.appendChild(btnDel);
@@ -952,6 +1347,45 @@ function renderStaffPanel(){
   renderStaffStatusBar();
 }
 
+function fillLeaveDays(td, s, r){
+  const t = TEXT[LANG];
+  td.classList.remove('bad'); td.textContent = ''; td.title = '';
+  if(!s || !r) return;
+  const cal = daysBetween(s, r);
+  if(cal <= 0){ td.textContent = '⚠'; td.classList.add('bad'); td.title = t.alBad; return; }
+  let work = 0;
+  for(let i=0;i<cal;i++){
+    const ds = addDaysYmd(s, i); const dow = parseYmd(ds).getDay();
+    if(dow===5 || dow===6) continue;
+    if(occasionsOn(ds).some(o=>o.kind==='holiday')) continue;
+    work++;
+  }
+  td.textContent = t.alDaysFmt(cal, work);
+  td.title = t.alDaysTip(cal, work);
+}
+
+function clearDropMarks(){ document.querySelectorAll('#staffTbody tr.drop-before, #staffTbody tr.drop-after').forEach(r=>r.classList.remove('drop-before','drop-after')); }
+
+function moveStaff(fromId, toId, before){
+  const p = state.periods[state.currentPeriod];
+  if(p.locked || fromId===toId) return;
+  const ids = p.staff.map(s=>s.id).filter(id=>id!==fromId);
+  let i = ids.indexOf(toId); if(i<0) return;
+  if(!before) i++;
+  ids.splice(i, 0, fromId);
+  // master order follows, so new periods inherit it
+  const pos = {}; ids.forEach((id,k)=> pos[id]=k);
+  state.masterStaff = state.masterStaff.map((m,k)=>({ m, k: pos[m.id]!==undefined ? pos[m.id] : 1e6+k }))
+                                       .sort((a,b)=>a.k-b.k).map(x=>x.m);
+  for(let n=1;n<=NUM_PERIODS;n++){
+    const pp = state.periods[n];
+    if(!pp || pp.locked) continue;
+    pp.order = ids.slice();
+    syncUnlockedPeriodStaff(n);
+  }
+  saveToStorage(true);
+  renderPeriod(state.currentPeriod);
+}
 function renderStaffStatusBar(){
   const t = TEXT[LANG];
   const p = state.periods[state.currentPeriod];
@@ -962,20 +1396,68 @@ function renderStaffStatusBar(){
 }
 
 /* ================= CODES TAB ================= */
-function renderCodesTab(){
+/* Codes legend at the bottom: one row of the most-used codes + full list hidden by default */
+let codesFullOpen = false;
+const QUICK_DEFAULT = ['M','A','E','N','MA','O','PO','AL','SL','PH','HD','FD'];
+const QUICK_DEFAULT_RAMADAN = ['RM5','RA5','RE5','RN','RHD','RFD','O','PO','AL','SL','PH','M'];
+const CODE_ORDER = Object.keys(CODES);
+function getQuickCodes(){
+  const p = state.periods[state.currentPeriod];
+  const counts = {};
+  Object.values(state.periods).forEach(pp=>{
+    if(!pp || !pp.duty) return;
+    Object.values(pp.duty).forEach(rec=> (rec.duties||[]).forEach(c=>{ c=(c||'').trim(); if(CODES[c]) counts[c]=(counts[c]||0)+1; }));
+  });
+  const used = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  const defaults = (p && p.ramadan) ? QUICK_DEFAULT_RAMADAN : QUICK_DEFAULT;
+  const pick = [];
+  used.concat(defaults).forEach(c=>{ if(pick.length<12 && !pick.includes(c)) pick.push(c); });
+  return pick.sort((a,b)=>CODE_ORDER.indexOf(a)-CODE_ORDER.indexOf(b));
+}
+function codeLabel(c){ const v=CODES[c]; return v ? (LANG==='ar'?v.ar:v.en) : ''; }
+function renderCodesPanel(){
   const t = TEXT[LANG];
+  document.getElementById('codesTitle').textContent = t.codesTitle;
+  document.getElementById('codesHint').textContent = t.codesHint;
+  const btn = document.getElementById('btnToggleCodes');
+  btn.textContent = codesFullOpen ? t.hideAllCodes : t.showAllCodes;
+  document.getElementById('codesFull').classList.toggle('hidden', !codesFullOpen);
+
+  const quick = document.getElementById('quickCodes');
+  quick.innerHTML = '';
+  getQuickCodes().forEach(c=>{
+    const v = CODES[c];
+    const b = document.createElement('button'); b.type='button'; b.className='code-chip';
+    b.innerHTML = `<b>${c}</b><span>${codeLabel(c)}</span><small>${v.h}${LANG==='ar'?'س':'h'}</small>`;
+    b.onmousedown = e=> e.preventDefault();          // keep focus in the rota cell
+    b.onclick = ()=> codeChipClick(c);
+    quick.appendChild(b);
+  });
+
+  if(!codesFullOpen) return;
   const grid = document.getElementById('codesGrid');
   grid.innerHTML = '';
   CAT_ORDER.forEach(cat=>{
     const entries = Object.entries(CODES).filter(([k,v])=>v.c===cat);
     if(!entries.length) return;
     const div = document.createElement('div'); div.className='cat';
-    const rows = entries.map(([k,v])=>`<tr><td class="code">${k}</td><td>${LANG==='ar'?v.ar:v.en}</td><td class="hrs">${v.h}${LANG==='ar'?'س':'h'}</td></tr>`).join('');
+    const rows = entries.map(([k,v])=>`<tr data-code="${k}" style="cursor:pointer"><td class="code">${k}</td><td>${LANG==='ar'?v.ar:v.en}</td><td class="hrs">${v.h}${LANG==='ar'?'س':'h'}</td></tr>`).join('');
     div.innerHTML = `<h3>${t.catNames[cat]}</h3><table>${rows}</table>`;
+    div.querySelectorAll('tr[data-code]').forEach(tr=>{ tr.onmousedown = e=>e.preventDefault(); tr.onclick = ()=> codeChipClick(tr.dataset.code); });
     grid.appendChild(div);
   });
 }
-
+function toggleFullCodes(){ codesFullOpen = !codesFullOpen; renderCodesPanel(); }
+function codeChipClick(code){
+  if(SEL.size > 1){ applySelValue(code); return; }
+  const inp = lastFocusedCell;
+  if(inp && document.body.contains(inp)){
+    inp.value = code;
+    inp.dispatchEvent(new Event('input'));
+    const next = inp.closest('tr').querySelector(`input[data-day="${parseInt(inp.dataset.day,10)+1}"]`);
+    (next || inp).focus();
+  }
+}
 /* ================= RENDER PERIOD TABLE ================= */
 function renderPeriod(n){
   const t = TEXT[LANG];
@@ -990,6 +1472,10 @@ function renderPeriod(n){
   document.getElementById('ramadanMode').checked = !!p.ramadan;
   document.getElementById('rotaTitle').textContent = t.rotaTitle;
 
+  const notice = document.getElementById('rangeNotice');
+  if(rangeStatus==='in') notice.classList.add('hidden');
+  else { notice.textContent = rangeStatus==='after' ? t.noticeAfter : t.noticeBefore; notice.classList.remove('hidden'); }
+
   renderStaffPanel();
 
   const dateNumRow = document.getElementById('dateNumRow');
@@ -999,26 +1485,41 @@ function renderPeriod(n){
 
   const stdHours = p.ramadan ? 5 : 7;
   let totReq = 0;
+  const todayD = new Date(); todayD.setHours(0,0,0,0);
   const refColNum = dateNumRow.children[4];
   const refColDay = dayNameRow.children[0];
   const refColOff = officialHoursRow.children[1];
 
+  const dayOcc = [];
   for(let i=0;i<ROSTER_DAYS;i++){
     const d = new Date(start); d.setDate(start.getDate()+i);
     const dow = d.getDay(); const isFri = dow===5, isSat = dow===6;
+    const isToday = d.getTime() === todayD.getTime();
+    const ds = ymd(d);
+    const occ = occasionsOn(ds); dayOcc.push(occ);
+    const isHol = occ.some(o=>o.kind==='holiday');
+    const isRam = occ.some(o=>o.id==='ramadan');
+    const occCls = `${isHol?'th-hol':''} ${isRam?'th-ram':''} ${occ.length?'th-occ':''}`;
 
     const thNum = document.createElement('th');
-    thNum.className = `day-col-header ${isFri?'th-fri':''} ${isSat?'th-sat':''}`;
+    thNum.className = `day-col-header ${isFri?'th-fri':''} ${isSat?'th-sat':''} ${isToday?'th-today':''} ${occCls}`;
     thNum.textContent = d.getDate();
     dateNumRow.insertBefore(thNum, refColNum);
 
     const thDay = document.createElement('th');
-    thDay.className = `day-col-sub ${isFri?'th-fri':''} ${isSat?'th-sat':''}`;
+    thDay.className = `day-col-sub ${isFri?'th-fri':''} ${isSat?'th-sat':''} ${isToday?'th-today':''} ${occCls}`;
     thDay.textContent = DAYS[LANG][dow];
     dayNameRow.insertBefore(thDay, refColDay);
 
+    [thNum, thDay].forEach(th=>{
+      th.onmouseenter = ()=> showOccTip(th, ds, occ);
+      th.onmouseleave = hideOccTip;
+      th.onclick = ()=> openHolidays(parseInt(ds.slice(0,4),10), occ.length ? occ[0].key : null, ds);
+      th.style.cursor = 'pointer';
+    });
+
     const tdOff = document.createElement('td');
-    tdOff.className = `day-col-off ${isFri?'td-fri':''} ${isSat?'td-sat':''}`;
+    tdOff.className = `day-col-off ${isFri?'td-fri':''} ${isSat?'td-sat':''} ${isHol?'td-hol':''} ${isRam?'td-ram':''}`;
     const target = (isFri||isSat) ? 0 : stdHours;
     tdOff.textContent = target; totReq += target;
     officialHoursRow.insertBefore(tdOff, refColOff);
@@ -1028,50 +1529,89 @@ function renderPeriod(n){
   const tbody = document.getElementById('rotaBody');
   tbody.innerHTML = '';
   const activeStaff = p.staff.filter(s=>s.active);
-  activeStaff.forEach((st, idx)=> tbody.appendChild(buildStaffRow(n, st, start, idx)));
+  activeStaff.forEach((st, idx)=> tbody.appendChild(buildStaffRow(n, st, start, idx, dayOcc)));
   calculateAllRows(n);
+
+  // Ramadan badge next to the Ramadan checkbox
+  const ram = eventsAround(start.getFullYear()).find(e=>e.id==='ramadan' && !e.hidden && e.start <= ymd(end) && e.end > ymd(start));
+  const badge = document.getElementById('ramBadge');
+  if(ram){ badge.textContent = t.ramBadge(fmtDM(ram.start), fmtDM(addDaysYmd(ram.end,-1))); badge.classList.remove('hidden'); }
+  else badge.classList.add('hidden');
+
+  renderLegend(n, dayOcc, activeStaff, start);
+  renderCodesPanel();
+  if(selPeriod === n) paintSelection(); else clearSelection(true);
 }
 
-function buildStaffRow(periodN, staffMeta, periodStart, idx){
+function renderLegend(n, dayOcc, activeStaff, start){
+  const t = TEXT[LANG];
+  const items = [];
+  const sw = (bg, label, extra)=> `<span><span class="sw" style="background:${bg};${extra||''}"></span>${label}</span>`;
+  items.push(sw('var(--friday-bg)', t.legendFri), sw('var(--saturday-bg)', t.legendSat));
+  if(dayOcc.some(o=>o.some(x=>x.kind==='holiday'))) items.push(sw('#b2ebf2', t.legendHol));
+  if(dayOcc.some(o=>o.some(x=>x.id==='ramadan'))) items.push(sw('#dcedc8', t.legendRam));
+  const anyAl = activeStaff.some(st=>{ for(let i=0;i<ROSTER_DAYS;i++){ const d=new Date(start); d.setDate(start.getDate()+i); if(isOnLeave(st, ymd(d))) return true; } return false; });
+  if(anyAl) items.push(sw('#eef1f3', t.legendAl, 'background-image:repeating-linear-gradient(135deg, rgba(120,144,156,.25) 0 3px, transparent 3px 6px)'));
+  const cats = new Set(activeStaff.map(staffCat));
+  if([...cats].some(c=>c!=='nurse')){
+    STAFF_CATS.forEach(c=>{ if(!cats.has(c)) return; items.push(c==='nurse' ? sw('#fff', t.cats[c]) : `<span><span class="sw ${catClass(c)}"></span>${t.cats[c]}</span>`); });
+  }
+  document.getElementById('rotaLegend').innerHTML = items.join('');
+}
+
+function buildStaffRow(periodN, staffMeta, periodStart, idx, dayOcc){
   const t = TEXT[LANG];
   const rec = state.periods[periodN].duty[staffMeta.id];
   const tr = document.createElement('tr');
   tr.dataset.id = staffMeta.id;
+  const live = masterOf(staffMeta.id) || staffMeta;
+  const cc = catClass(live.cat);
+  const tint = td => { if(cc) td.classList.add(cc); return td; };
 
-  const tdSn = document.createElement('td'); tdSn.textContent = idx+1; tr.appendChild(tdSn);
+  const tdSn = document.createElement('td'); tdSn.textContent = idx+1; tr.appendChild(tint(tdSn));
 
   const tdDes = document.createElement('td');
   const inpDes = document.createElement('input'); inpDes.className='des-input'; inpDes.value = staffMeta.des||'';
   inpDes.disabled = true; inpDes.title = LANG==='ar' ? 'يُعدَّل من قائمة موظفي هذه الفترة' : 'Edit from this period\'s staff panel';
-  tdDes.appendChild(inpDes); tr.appendChild(tdDes);
+  tdDes.appendChild(inpDes); tr.appendChild(tint(tdDes));
 
   const tdStno = document.createElement('td');
   const inpStno = document.createElement('input'); inpStno.className='stno-input'; inpStno.value = staffMeta.stno||'';
   inpStno.disabled = true;
-  tdStno.appendChild(inpStno); tr.appendChild(tdStno);
+  tdStno.appendChild(inpStno); tr.appendChild(tint(tdStno));
 
   const tdName = document.createElement('td'); tdName.className='col-name';
   const inpName = document.createElement('input'); inpName.className='name-input'; inpName.value = staffMeta.name||'';
+  inpName.dir = 'auto';
   inpName.placeholder = t.namePlaceholder(idx+1);
   inpName.disabled = true;
-  tdName.appendChild(inpName); tr.appendChild(tdName);
+  tdName.appendChild(inpName); tr.appendChild(tint(tdName));
 
   for(let i=0;i<ROSTER_DAYS;i++){
     const d = new Date(periodStart); d.setDate(periodStart.getDate()+i);
     const isFri = d.getDay()===5, isSat = d.getDay()===6;
+    const occ = (dayOcc && dayOcc[i]) || [];
+    const isHol = occ.some(o=>o.kind==='holiday'), isRam = occ.some(o=>o.id==='ramadan');
+    const onAl = isOnLeave(staffMeta, ymd(d));
     const td = document.createElement('td');
-    td.className = `${isFri?'td-fri':''} ${isSat?'td-sat':''}`;
+    td.className = `duty-cell ${isFri?'td-fri':''} ${isSat?'td-sat':''} ${isHol?'td-hol':''} ${isRam?'td-ram':''} ${onAl?'td-al':''}`;
+    td.dataset.day = i; td.dataset.key = staffMeta.id + '|' + i;
     const inp = document.createElement('input');
     inp.maxLength = 5; inp.dataset.day = i;
     inp.value = (rec && rec.duties[i]) ? rec.duties[i] : '';
-    const info = CODES[inp.value];
+    if(onAl){ inp.placeholder = 'AL'; inp.title = t.alCellTip; }
+    const info = CODES[inp.value.trim()];
     if(info) inp.title = (LANG==='ar'?info.ar:info.en) + ' · ' + info.h + (LANG==='ar'?'س':'h');
+    inp.onfocus = ()=>{ lastFocusedCell = inp; if(!extendingSel) selAnchor = { r: idx, d: i }; };
     inp.oninput = ()=>{
       inp.value = inp.value.toUpperCase();
+      const prev = rec ? (rec.duties[i]||'').trim() : '';
+      const cur = inp.value.trim();
       if(rec) rec.duties[i] = inp.value;
-      const info2 = CODES[inp.value];
-      inp.title = info2 ? (LANG==='ar'?info2.ar:info2.en) + ' · ' + info2.h + (LANG==='ar'?'س':'h') : '';
+      const info2 = CODES[cur];
+      inp.title = info2 ? (LANG==='ar'?info2.ar:info2.en) + ' · ' + info2.h + (LANG==='ar'?'س':'h') : (cur ? t.unknownCode : '');
       highlightCell(inp, td);
+      if(EXIT_CODES.has(cur) || EXIT_CODES.has(prev)) propagateExit(staffMeta.id);
       calculateRow(periodN, tr, staffMeta.id);
       calculateShiftStats(periodN);
       saveToStorage(true);
@@ -1088,11 +1628,23 @@ function buildStaffRow(periodN, staffMeta, periodStart, idx){
     tr.appendChild(td);
   });
 
+  // OLD PO: auto-carried from the previous period's final balance; typing a value sets a manual override
   const tdOldPo = document.createElement('td');
-  const inpOld = document.createElement('input'); inpOld.type='number'; inpOld.className='cell-old-po';
-  inpOld.style.width='40px'; inpOld.value = rec ? (rec.oldPo||0) : 0;
-  inpOld.oninput = ()=>{ if(rec) rec.oldPo = parseFloat(inpOld.value)||0; calculateRow(periodN, tr, staffMeta.id); saveToStorage(true); };
+  const inpOld = document.createElement('input'); inpOld.type='number'; inpOld.step='any'; inpOld.className='cell-old-po';
+  inpOld.style.width='46px';
+  inpOld.oninput = ()=>{
+    if(!rec) return;
+    const v = inpOld.value.trim();
+    if(v === '' || isNaN(parseFloat(v))) delete rec.oldPoOverride;
+    else rec.oldPoOverride = parseFloat(v);
+    calculateRow(periodN, tr, staffMeta.id);
+    saveToStorage(true);
+  };
+  inpOld.onchange = ()=>{ calculateRow(periodN, tr, staffMeta.id, true); };
   tdOldPo.appendChild(inpOld); tr.appendChild(tdOldPo);
+
+  const tdUsed = document.createElement('td'); tdUsed.className='stat-val cell-po-used'; tdUsed.textContent='0';
+  tr.appendChild(tdUsed);
 
   const tdFinal = document.createElement('td'); tdFinal.className='stat-val cell-final-po'; tdFinal.style.background='#e8f5e9'; tdFinal.textContent='0';
   tr.appendChild(tdFinal);
@@ -1103,73 +1655,64 @@ function buildStaffRow(periodN, staffMeta, periodStart, idx){
 function highlightCell(input, td){
   const val = input.value.trim();
   td.classList.remove('td-night');
-  if(['N','N7','N8','N10','RN','RN5','RN6','RN7','RN8','RN9'].includes(val)) td.classList.add('td-night');
+  if(SHIFT_GROUPS.N.includes(val)) td.classList.add('td-night');
+  input.classList.toggle('code-invalid', !!val && !CODES[val]);
+  if(val && !CODES[val]) input.title = TEXT[LANG].unknownCode;
 }
 
-function calculateRow(periodN, tr, staffId){
+function calculateRow(periodN, tr, staffId, forceOldPoRefresh){
   const p = state.periods[periodN];
   const rec = p.duty[staffId];
   if(!rec) return;
-  const isRamadan = !!p.ramadan;
-  const stdDay = isRamadan ? 5 : 7;
-  let workedHours = 0, workedDays = 0;
+  const w = periodWork(p, rec);
+  const po = getPoBalance(periodN, staffId);
+  const t = TEXT[LANG];
 
-  rec.duties.forEach(code=>{
-    code = (code||'').trim();
-    if(code && SHIFT_HOURS.hasOwnProperty(code)){
-      const hrs = SHIFT_HOURS[code];
-      workedHours += hrs;
-      if(hrs>0) workedDays++;
-    }
-  });
+  tr.querySelector('.cell-hrs-worked').textContent = w.workedHours;
+  tr.querySelector('.cell-days-worked').textContent = w.workedDays;
+  tr.querySelector('.cell-hrs-due').textContent = w.dueHours;
+  tr.querySelector('.cell-ot-normal').textContent = w.otNormal;
+  tr.querySelector('.cell-ot-ramadan').textContent = w.otRamadan;
+  tr.querySelector('.cell-ot-total').textContent = w.totalOt;
 
-  const dueHours = isRamadan ? 100 : 140;
-  let otNormal=0, otRamadan=0;
-  if(workedHours > dueHours){
-    if(isRamadan) otRamadan = workedHours - dueHours;
-    else otNormal = workedHours - dueHours;
+  const inpOld = tr.querySelector('.cell-old-po');
+  if(forceOldPoRefresh || document.activeElement !== inpOld){
+    inpOld.value = po.opening;
   }
-  const totalOt = otNormal + otRamadan;
-  const oldPo = parseFloat(rec.oldPo)||0;
-  const earnedPoDays = totalOt>0 ? (totalOt/stdDay) : 0;
-  const finalPo = (oldPo + earnedPoDays).toFixed(1);
+  inpOld.classList.toggle('overridden', po.overridden);
+  inpOld.title = po.overridden ? t.oldPoManualTip : t.oldPoAutoTip;
 
-  tr.querySelector('.cell-hrs-worked').textContent = workedHours;
-  tr.querySelector('.cell-days-worked').textContent = workedDays;
-  tr.querySelector('.cell-hrs-due').textContent = dueHours;
-  tr.querySelector('.cell-ot-normal').textContent = otNormal;
-  tr.querySelector('.cell-ot-ramadan').textContent = otRamadan;
-  tr.querySelector('.cell-ot-total').textContent = totalOt;
-  tr.querySelector('.cell-final-po').textContent = finalPo;
+  const usedCell = tr.querySelector('.cell-po-used');
+  usedCell.textContent = po.used;
+
+  const finalCell = tr.querySelector('.cell-final-po');
+  finalCell.textContent = po.final.toFixed(1);
+  finalCell.classList.toggle('val-neg', po.final < 0);
+  finalCell.title = `${po.opening} + ${po.earned} − ${po.used} = ${po.final}`;
 }
 
 function calculateAllRows(periodN){
   document.querySelectorAll('#rotaBody tr').forEach(tr=>{
-    calculateRow(periodN, tr, parseInt(tr.dataset.id,10));
+    calculateRow(periodN, tr, parseInt(tr.dataset.id,10), true);
   });
   calculateShiftStats(periodN);
 }
 
 function calculateShiftStats(periodN){
-  const shiftM = new Array(ROSTER_DAYS).fill(0);
-  const shiftA = new Array(ROSTER_DAYS).fill(0);
-  const shiftE = new Array(ROSTER_DAYS).fill(0);
-  const shiftN = new Array(ROSTER_DAYS).fill(0);
+  const counts = { M:new Array(ROSTER_DAYS).fill(0), A:new Array(ROSTER_DAYS).fill(0), E:new Array(ROSTER_DAYS).fill(0), N:new Array(ROSTER_DAYS).fill(0) };
   state.periods[periodN].staff.filter(s=>s.active).forEach(st=>{
     const rec = state.periods[periodN].duty[st.id];
     if(!rec) return;
     rec.duties.forEach((code, day)=>{
       code = (code||'').trim();
-      if(['M','M1','M2','M8','MC','RM1','RM2','RM5'].includes(code)) shiftM[day]++;
-      if(['A','A1','A2','A8','RA1','RA2','RA5'].includes(code)) shiftA[day]++;
-      if(['E','E1','E2','E8','RE1','RE2','RE5'].includes(code)) shiftE[day]++;
-      if(['N','N7','N8','RN','RN5','RN6','RN7'].includes(code)) shiftN[day]++;
+      if(!code) return;
+      Object.keys(SHIFT_GROUPS).forEach(g=>{ if(SHIFT_GROUPS[g].includes(code)) counts[g][day]++; });
     });
   });
-  renderStatFooter('shiftCountsM', shiftM);
-  renderStatFooter('shiftCountsA', shiftA);
-  renderStatFooter('shiftCountsE', shiftE);
-  renderStatFooter('shiftCountsN', shiftN);
+  renderStatFooter('shiftCountsM', counts.M);
+  renderStatFooter('shiftCountsA', counts.A);
+  renderStatFooter('shiftCountsE', counts.E);
+  renderStatFooter('shiftCountsN', counts.N);
 }
 
 function renderStatFooter(rowId, totals){
@@ -1222,7 +1765,7 @@ function renderSummary(){
       row += `<td>${worked===null ? '' : worked}</td>`;
     }
     const name = known[id] || t.namePlaceholder(i+1);
-    body += `<tr><td class="name-cell">${name}</td>${row}<td class="total-cell">${yearTotal}</td></tr>`;
+    body += `<tr><td class="name-cell" dir="auto">${name}</td>${row}<td class="total-cell">${yearTotal}</td></tr>`;
   });
   body += '</tbody>';
   table.innerHTML = head+body;
@@ -1236,8 +1779,8 @@ function resetAllData(){
   state = {
     lang: LANG,
     gov: 'Dhofar / ظفار', wilayatKey: 'salalah', instKey: DHOFAR_INSTITUTIONS.salalah[0].en, instCustom:'',
-    dept: 'LR', globalStartDate: '2025-01-05', nextStaffId: 1, masterStaff: [], viewMasterMode: false,
-    periods: {}, currentPeriod: 1, viewingTab: 'period'
+    dept: 'LR', globalStartDate: defaultStartDate(), nextStaffId: 1, masterStaff: [], viewMasterMode: false,
+    periods: {}, currentPeriod: 1, viewingTab: 'period', holidayOverrides: {}, customEvents: []
   };
   init(true);
 }
@@ -1250,19 +1793,21 @@ function exportCSV(){
   let csv = '\uFEFF';
   csv += 'S.N,DES,St.No,NAME,';
   for(let i=1;i<=ROSTER_DAYS;i++) csv += `Day ${i},`;
-  csv += 'Worked Hrs,Worked Days,Due Hrs,Normal OT,Ramadan OT,Total OT,Old PO,Final PO\n';
+  csv += 'Worked Hrs,Worked Days,Due Hrs,Normal OT,Ramadan OT,Total OT,Old PO,PO Used,Final PO\n';
   document.querySelectorAll('#rotaBody tr').forEach((tr,idx)=>{
     const st = activeStaff[idx];
     const rec = p.duty[st.id];
     csv += `${idx+1},${st.des},${st.stno},"${st.name}",`;
-    if(rec) rec.duties.forEach(c=> csv += `${c||''},`);
+    const ps = periodStartDate(n);
+    if(rec) rec.duties.forEach((c,i)=>{ const d=new Date(ps); d.setDate(ps.getDate()+i); csv += `${c || (isOnLeave(st, ymd(d)) ? 'AL' : '')},`; });
     csv += `${tr.querySelector('.cell-hrs-worked').textContent},`;
     csv += `${tr.querySelector('.cell-days-worked').textContent},`;
     csv += `${tr.querySelector('.cell-hrs-due').textContent},`;
     csv += `${tr.querySelector('.cell-ot-normal').textContent},`;
     csv += `${tr.querySelector('.cell-ot-ramadan').textContent},`;
     csv += `${tr.querySelector('.cell-ot-total').textContent},`;
-    csv += `${rec ? rec.oldPo : 0},`;
+    csv += `${tr.querySelector('.cell-old-po').value},`;
+    csv += `${tr.querySelector('.cell-po-used').textContent},`;
     csv += `${tr.querySelector('.cell-final-po').textContent}\n`;
   });
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
@@ -1305,23 +1850,423 @@ function loadFromStorage(){
   catch(e){ return false; }
 }
 
-/* Keyboard navigation across matrix cells */
+/* Keyboard navigation across matrix cells (Shift+Arrows extends a multi-cell selection) */
 document.addEventListener('keydown', (e)=>{
-  if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) return;
   const active = document.activeElement;
-  if(!active || !active.dataset || active.dataset.day===undefined) return;
+  const inDuty = !!(active && active.dataset && active.dataset.day!==undefined && active.closest && active.closest('#rotaBody'));
+
+  // Bulk actions while several cells are selected
+  if(SEL.size > 1 && active && active.id !== 'selCode'){
+    const editingElsewhere = active && (active.tagName==='INPUT' || active.tagName==='SELECT' || active.tagName==='TEXTAREA') && !inDuty;
+    if(!editingElsewhere){
+      if(e.key==='Escape'){ clearSelection(); e.preventDefault(); return; }
+      if(e.key==='Delete' || e.key==='Backspace'){ applySelValue(''); e.preventDefault(); return; }
+      if(e.key==='Enter' && inDuty && SEL.has(active.closest('td').dataset.key)){ applySelValue(active.value); e.preventDefault(); return; }
+      if(!inDuty && e.key.length===1 && /[a-z0-9]/i.test(e.key) && !e.ctrlKey && !e.metaKey){
+        const box = document.getElementById('selCode'); box.focus(); box.value = e.key.toUpperCase(); validateSelCode(); e.preventDefault(); return;
+      }
+    }
+  }
+
+  if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) return;
+  if(!inDuty) return;
   const currentDay = parseInt(active.dataset.day,10);
   const currentRow = active.closest('tr');
   const rtl = document.getElementById('htmlRoot').dir === 'rtl';
-  const goPrevCol = ()=>{ const prev = currentRow.querySelector(`input[data-day="${currentDay-1}"]`); if(prev) prev.focus(); };
-  const goNextCol = ()=>{ const next = currentRow.querySelector(`input[data-day="${currentDay+1}"]`); if(next) next.focus(); };
-  if(e.key==='ArrowRight'){ rtl ? goPrevCol() : goNextCol(); }
-  else if(e.key==='ArrowLeft'){ rtl ? goNextCol() : goPrevCol(); }
-  else if(e.key==='ArrowDown'){ const nr=currentRow.nextElementSibling; if(nr){ const b=nr.querySelector(`input[data-day="${currentDay}"]`); if(b) b.focus(); } }
-  else if(e.key==='ArrowUp'){ const pr=currentRow.previousElementSibling; if(pr){ const a=pr.querySelector(`input[data-day="${currentDay}"]`); if(a) a.focus(); } }
+  let target = null;
+  if(e.key==='ArrowRight') target = currentRow.querySelector(`input[data-day="${currentDay + (rtl?-1:1)}"]`);
+  else if(e.key==='ArrowLeft') target = currentRow.querySelector(`input[data-day="${currentDay + (rtl?1:-1)}"]`);
+  else if(e.key==='ArrowDown'){ const nr=currentRow.nextElementSibling; if(nr) target = nr.querySelector(`input[data-day="${currentDay}"]`); }
+  else if(e.key==='ArrowUp'){ const pr=currentRow.previousElementSibling; if(pr) target = pr.querySelector(`input[data-day="${currentDay}"]`); }
+  if(!target) return;
+  e.preventDefault();
+  if(e.shiftKey){
+    if(!selAnchor) selAnchor = cellPos(active.closest('td'));
+    extendingSel = true; target.focus(); extendingSel = false;
+    SEL = new Set(rectKeys(selAnchor, cellPos(target.closest('td')))); selPeriod = state.currentPeriod;
+    paintSelection();
+  } else {
+    if(SEL.size) clearSelection(true);
+    target.focus();
+  }
 });
 
+/* ================= MULTI-CELL SELECTION & BULK FILL ================= */
+let SEL = new Set(), selAnchor = null, selDrag = null, selPeriod = null, extendingSel = false;
+let lastBulk = null, lastFocusedCell = null;
+
+function rotaRows(){ return [...document.querySelectorAll('#rotaBody tr')]; }
+function cellPos(td){ return { r: rotaRows().indexOf(td.parentElement), d: parseInt(td.dataset.day,10) }; }
+function rectKeys(a, b){
+  const rows = rotaRows(), keys = [];
+  const r0 = Math.min(a.r,b.r), r1 = Math.max(a.r,b.r), d0 = Math.min(a.d,b.d), d1 = Math.max(a.d,b.d);
+  for(let r=r0;r<=r1;r++){ if(!rows[r]) continue; for(let d=d0;d<=d1;d++) keys.push(rows[r].dataset.id+'|'+d); }
+  return keys;
+}
+function paintSelection(){
+  if(SEL.size){ const live = new Set([...document.querySelectorAll('#rotaBody td.duty-cell')].map(td=>td.dataset.key)); SEL = new Set([...SEL].filter(k=>live.has(k))); }
+  document.querySelectorAll('#rotaBody td.duty-cell').forEach(td=> td.classList.toggle('sel', SEL.has(td.dataset.key)));
+  updateSelBar();
+}
+function clearSelection(silent){
+  SEL = new Set(); selPeriod = null;
+  if(!silent || document.querySelector('#rotaBody td.sel')) paintSelection(); else updateSelBar();
+}
+function updateSelBar(){
+  const t = TEXT[LANG];
+  const bar = document.getElementById('selBar');
+  const show = SEL.size > 1;
+  bar.classList.toggle('hidden', !show);
+  if(!show) return;
+  document.getElementById('selCount').textContent = t.selCount(SEL.size);
+  document.getElementById('selApply').textContent = t.selApply;
+  document.getElementById('selClearCells').textContent = t.selClear;
+  document.getElementById('selUndo').textContent = t.selUndo;
+  document.getElementById('selUndo').classList.toggle('hidden', !(lastBulk && lastBulk.period===state.currentPeriod));
+  document.getElementById('selCode').placeholder = t.selPlaceholder;
+  const chips = document.getElementById('selChips');
+  chips.innerHTML = '';
+  getQuickCodes().slice(0, 8).forEach(c=>{
+    const b = document.createElement('button'); b.className='chip'; b.textContent=c; b.title=codeLabel(c);
+    b.onclick = ()=> applySelValue(c); chips.appendChild(b);
+  });
+}
+function focusSelBar(){
+  updateSelBar();
+  if(SEL.size > 1){ const box = document.getElementById('selCode'); box.value=''; box.classList.remove('bad'); box.focus(); }
+}
+function validateSelCode(){
+  const box = document.getElementById('selCode');
+  box.value = box.value.toUpperCase();
+  const v = box.value.trim();
+  box.classList.toggle('bad', !!v && !CODES[v]);
+  box.title = CODES[v] ? codeLabel(v) : (v ? TEXT[LANG].unknownCode : '');
+}
+function applySelCode(){ applySelValue(document.getElementById('selCode').value); }
+function applySelValue(code){
+  code = (code||'').trim().toUpperCase();
+  if(code && !CODES[code]){ const box=document.getElementById('selCode'); box.value=code; validateSelCode(); box.focus(); return; }
+  const n = state.currentPeriod, p = state.periods[n];
+  const undo = [], exitIds = new Set();
+  SEL.forEach(k=>{
+    const [id, day] = k.split('|').map(Number);
+    const rec = p.duty[id]; if(!rec) return;
+    const prev = rec.duties[day] || '';
+    undo.push({ id, day, prev });
+    rec.duties[day] = code;
+    if(EXIT_CODES.has(prev.trim()) || EXIT_CODES.has(code)) exitIds.add(id);
+  });
+  exitIds.forEach(id=> propagateExit(id));
+  lastBulk = { period:n, undo };
+  saveToStorage(true);
+  selPeriod = n;
+  renderPeriod(n);
+  const box = document.getElementById('selCode'); box.value=''; box.classList.remove('bad');
+}
+function undoBulk(){
+  if(!lastBulk) return;
+  const p = state.periods[lastBulk.period];
+  const exitIds = new Set();
+  lastBulk.undo.forEach(u=>{
+    const rec = p.duty[u.id]; if(!rec) return;
+    const cur = rec.duties[u.day] || '';
+    if(EXIT_CODES.has(cur.trim()) || EXIT_CODES.has(u.prev.trim())) exitIds.add(u.id);
+    rec.duties[u.day] = u.prev;
+  });
+  exitIds.forEach(id=> propagateExit(id));
+  const n = lastBulk.period; lastBulk = null;
+  saveToStorage(true);
+  renderPeriod(n);
+}
+
+function bindSelectionOnce(){
+  const body = document.getElementById('rotaBody');
+  body.addEventListener('mousedown', e=>{
+    if(e.button!==0) return;
+    const td = e.target.closest('td.duty-cell'); if(!td) return;
+    const pos = cellPos(td);
+    if(e.ctrlKey || e.metaKey){
+      e.preventDefault();
+      if(SEL.size===0 && selAnchor){ const r=rotaRows()[selAnchor.r]; if(r) SEL.add(r.dataset.id+'|'+selAnchor.d); }
+      const k = td.dataset.key; SEL.has(k) ? SEL.delete(k) : SEL.add(k);
+      selAnchor = pos; selPeriod = state.currentPeriod;
+      paintSelection(); focusSelBar(); return;
+    }
+    if(e.shiftKey && selAnchor){
+      e.preventDefault();
+      SEL = new Set(rectKeys(selAnchor, pos)); selPeriod = state.currentPeriod;
+      paintSelection(); focusSelBar(); return;
+    }
+    selAnchor = pos; selDrag = { start: pos, moved:false };
+    if(SEL.size) clearSelection();
+  });
+  body.addEventListener('mouseover', e=>{
+    if(!selDrag) return;
+    const td = e.target.closest('td.duty-cell'); if(!td) return;
+    const pos = cellPos(td);
+    if(!selDrag.moved && pos.r===selDrag.start.r && pos.d===selDrag.start.d) return;
+    if(!selDrag.moved){
+      selDrag.moved = true; document.body.classList.add('no-select');
+      if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      window.getSelection && window.getSelection().removeAllRanges();
+    }
+    SEL = new Set(rectKeys(selDrag.start, pos)); selPeriod = state.currentPeriod;
+    paintSelection();
+  });
+  document.addEventListener('mouseup', ()=>{
+    if(!selDrag) return;
+    const moved = selDrag.moved; selDrag = null;
+    document.body.classList.remove('no-select');
+    if(moved && SEL.size > 1) focusSelBar();
+  });
+  const box = document.getElementById('selCode');
+  box.addEventListener('input', validateSelCode);
+  box.addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ e.preventDefault(); applySelCode(); }
+    else if(e.key==='Escape'){ e.preventDefault(); clearSelection(); }
+  });
+}
+
+/* ================= OMAN HOLIDAYS & OCCASIONS =================
+   Rules (Royal Decree on official holidays): Hijri New Year 1 Muharram, Prophet's Birthday 12 Rabi' I,
+   Isra'a & Mi'raj 27 Rajab, Eid Al Fitr 29 Ramadan – 3 Shawwal, Eid Al Adha 9 – 12 Dhul Hijjah,
+   Accession Day 11 January, National Day 18–19 November. The Ministry of Labour announces the actual
+   dates each year (some are moved to give long weekends), so announced dates are stored below and
+   every other year is estimated from the Umm al-Qura calendar. Users can edit any date. */
+const HIJRI_EVENTS = [
+  { id:'isra',    hm:7,  hd:27, days:1, kind:'holiday',    en:"Al Isra'a Wal Mi'raj",       ar:'ذكرى الإسراء والمعراج' },
+  { id:'ramadan', hm:9,  hd:1,  days:0, kind:'observance', en:'Holy month of Ramadan',     ar:'شهر رمضان المبارك' },
+  { id:'fitr',    hm:9,  hd:29, days:5, kind:'holiday',    en:'Eid Al Fitr holiday',       ar:'إجازة عيد الفطر' },
+  { id:'adha',    hm:12, hd:9,  days:4, kind:'holiday',    en:'Eid Al Adha holiday (Arafah + Eid)', ar:'إجازة عيد الأضحى (عرفة والعيد)' },
+  { id:'hijri',   hm:1,  hd:1,  days:1, kind:'holiday',    en:'Hijri New Year',            ar:'رأس السنة الهجرية' },
+  { id:'mawlid',  hm:3,  hd:12, days:1, kind:'holiday',    en:"Prophet Muhammad's Birthday", ar:'المولد النبوي الشريف' }
+];
+const GREG_EVENTS = [
+  { id:'accession', m:1,  d:11, days:1, kind:'holiday', en:"HM the Sultan's Accession Day", ar:'ذكرى تولي جلالة السلطان مقاليد الحكم' },
+  { id:'national',  m:11, d:18, days:2, kind:'holiday', en:'National Day',                  ar:'العيد الوطني' }
+];
+/* Dates officially announced by the Ministry of Labour (sources: Oman Observer 28-12-2025, Gulf News & ARY News on Ramadan/Eid Al Fitr, Oman Observer on Eid Al Adha, Times of Oman on National Day) */
+const OMAN_OFFICIAL = {
+  'g2026:accession': { start:'2026-01-15', days:1 },
+  'h1447:isra':      { start:'2026-01-18', days:1 },
+  'h1447:ramadan':   { start:'2026-02-19', days:29 },
+  'h1447:fitr':      { start:'2026-03-19', days:5 },
+  'h1447:adha':      { start:'2026-05-26', days:5 },
+  'h1448:hijri':     { start:'2026-06-18', days:1 },
+  'h1448:mawlid':    { start:'2026-08-27', days:1 },
+  'g2026:national':  { start:'2026-11-25', days:2 }
+};
+
+let _hFmt = null;
+function hijriFmt(){
+  if(_hFmt !== null) return _hFmt;
+  _hFmt = false;
+  for(const cal of ['islamic-umalqura','islamic-civil','islamic']){
+    try{
+      const f = new Intl.DateTimeFormat('en-US-u-ca-'+cal, { day:'numeric', month:'numeric', year:'numeric' });
+      if(f.resolvedOptions().calendar === cal){ _hFmt = f; break; }
+    }catch(e){}
+  }
+  return _hFmt;
+}
+const _h2g = {}, _hYearsBuilt = {};
+function buildHijriYear(gy){
+  if(_hYearsBuilt[gy]) return; _hYearsBuilt[gy] = true;
+  const f = hijriFmt(); if(!f) return;
+  const d = new Date(gy, 0, 1, 12);
+  while(d.getFullYear() === gy){
+    const parts = {}; f.formatToParts(d).forEach(p=>{ parts[p.type] = p.value; });
+    const hy = parseInt(parts.year,10), hm = parseInt(parts.month,10), hd = parseInt(parts.day,10);
+    if(hy && hm && hd) _h2g[hy+'-'+hm+'-'+hd] = ymd(d);
+    d.setDate(d.getDate()+1);
+  }
+}
+function hijriToGreg(hy, hm, hd){
+  const approx = Math.floor(hy * 0.970229 + 621.5);
+  for(let y=approx-1;y<=approx+1;y++) buildHijriYear(y);
+  return _h2g[hy+'-'+hm+'-'+hd] || null;
+}
+function hijriYearOf(date){
+  const f = hijriFmt(); if(!f) return null;
+  const p = f.formatToParts(date).find(x=>x.type==='year');
+  return p ? parseInt(p.value,10) : null;
+}
+
+const _evCache = {};
+function invalidateEvents(){ Object.keys(_evCache).forEach(k=> delete _evCache[k]); }
+function eventsForYear(Y){
+  if(_evCache[Y]) return _evCache[Y];
+  const out = [];
+  const ov = state.holidayOverrides || {};
+  const push = (key, def, start, days)=>{
+    let src = 'estimate';
+    if(OMAN_OFFICIAL[key]){ start = OMAN_OFFICIAL[key].start; days = OMAN_OFFICIAL[key].days; src = 'official'; }
+    const o = ov[key] || {};
+    if(o.start){ start = o.start; src = 'user'; }
+    if(o.days){ days = o.days; src = 'user'; }
+    if(!start || parseInt(start.slice(0,4),10) !== Y) return;
+    out.push({ key, id:def.id, en:def.en, ar:def.ar, kind:def.kind, start, days, end:addDaysYmd(start, days), src, hidden:!!o.hidden, custom:false });
+  };
+  GREG_EVENTS.forEach(def=>{
+    const p=x=>String(x).padStart(2,'0');
+    push('g'+Y+':'+def.id, def, Y+'-'+p(def.m)+'-'+p(def.d), def.days);
+  });
+  const hyA = hijriYearOf(new Date(Y,0,1,12)), hyB = hijriYearOf(new Date(Y,11,31,12));
+  const hys = new Set([hyA, hyB].filter(Boolean));
+  // also consider announced dates even without Intl support
+  Object.keys(OMAN_OFFICIAL).forEach(k=>{ if(k[0]==='h' && OMAN_OFFICIAL[k].start.startsWith(Y+'-')) hys.add(parseInt(k.slice(1),10)); });
+  hys.forEach(hy=>{
+    HIJRI_EVENTS.forEach(def=>{
+      let start = hijriToGreg(hy, def.hm, def.hd), days = def.days;
+      if(def.id==='ramadan' && start){
+        const shawwal = hijriToGreg(hy, 10, 1);
+        days = shawwal ? daysBetween(start, shawwal) : 30;
+      }
+      push('h'+hy+':'+def.id, def, start, days);
+    });
+  });
+  (state.customEvents || []).forEach(c=>{
+    if(!c.start || parseInt(c.start.slice(0,4),10)!==Y) return;
+    out.push({ key:'c:'+c.id, id:'custom', en:c.name, ar:c.name, kind:c.kind||'holiday', start:c.start, days:c.days||1, end:addDaysYmd(c.start, c.days||1), src:'user', hidden:false, custom:true, cid:c.id });
+  });
+  out.sort((a,b)=> a.start < b.start ? -1 : a.start > b.start ? 1 : 0);
+  _evCache[Y] = out;
+  return out;
+}
+function eventsAround(Y){ return eventsForYear(Y-1).concat(eventsForYear(Y), eventsForYear(Y+1)); }
+function occasionsOn(ds){
+  const Y = parseInt(ds.slice(0,4),10);
+  return eventsAround(Y).filter(e=> !e.hidden && e.start <= ds && ds < e.end);
+}
+function occName(e){ return LANG==='ar' ? e.ar : e.en; }
+function srcLabel(src){ const t=TEXT[LANG]; return src==='official' ? t.srcOfficial : src==='user' ? t.srcUser : t.srcEstimate; }
+
+/* Hover popup on the date header */
+function showOccTip(th, ds, occ){
+  if(!occ.length) return;
+  const t = TEXT[LANG];
+  const tip = document.getElementById('occTip');
+  tip.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${fmtDMY(ds)}</div>` + occ.map(e=>{
+    const dot = e.kind==='holiday' ? '#00838f' : '#689f38';
+    const range = e.days>1 ? `${fmtDM(e.start)} – ${fmtDM(addDaysYmd(e.end,-1))}` : fmtDM(e.start);
+    return `<div class="occ-row"><span class="kind-dot" style="background:${dot}"></span><b>${occName(e)}</b> · ${range}<div class="occ-src">${e.kind==='holiday'?t.kindHoliday:t.kindObservance} · ${srcLabel(e.src)}</div></div>`;
+  }).join('') + `<div class="occ-edit">✎ ${t.holClickEdit}</div>`;
+  tip.classList.remove('hidden');
+  const r = th.getBoundingClientRect(), w = tip.offsetWidth;
+  let left = Math.min(Math.max(8, r.left + r.width/2 - w/2), window.innerWidth - w - 8);
+  tip.style.left = left + 'px'; tip.style.top = (r.bottom + 6) + 'px';
+}
+function hideOccTip(){ document.getElementById('occTip').classList.add('hidden'); }
+
+/* Holidays editor */
+let holYear = new Date().getFullYear(), holFlashKey = null, holNewStart = '';
+function openHolidays(year, flashKey, dateStr){
+  hideOccTip();
+  holYear = year || periodStartDate(state.currentPeriod).getFullYear();
+  holFlashKey = flashKey || null; holNewStart = (!flashKey && dateStr) ? dateStr : '';
+  document.getElementById('holModal').classList.remove('hidden');
+  renderHolidays();
+}
+function closeHolidays(){ document.getElementById('holModal').classList.add('hidden'); }
+function holYearStep(k){ holYear += k; holFlashKey = null; holNewStart=''; renderHolidays(); }
+function setHolOverride(key, patch){
+  if(!state.holidayOverrides) state.holidayOverrides = {};
+  const o = Object.assign({}, state.holidayOverrides[key] || {}, patch);
+  Object.keys(o).forEach(k=>{ if(o[k]===null || o[k]===undefined || o[k]==='' || o[k]===false) delete o[k]; });
+  if(Object.keys(o).length) state.holidayOverrides[key] = o; else delete state.holidayOverrides[key];
+  afterHolidayChange();
+}
+function afterHolidayChange(){ invalidateEvents(); saveToStorage(true); renderHolidays(); if(state.viewingTab==='period') renderPeriod(state.currentPeriod); }
+function renderHolidays(){
+  const t = TEXT[LANG];
+  document.getElementById('holTitle').textContent = t.holTitle;
+  document.getElementById('holYear').textContent = holYear;
+  const evs = eventsForYear(holYear);
+  const esc = x => String(x).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  let html = `<div style="overflow-x:auto"><table><thead><tr>${t.holCols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  evs.forEach(e=>{
+    const dot = e.kind==='holiday' ? '#b2ebf2' : '#dcedc8';
+    const nameCell = e.custom
+      ? `<input type="text" dir="auto" data-act="cname" data-key="${e.key}" value="${esc(e.en)}" style="width:100%">`
+      : `<span class="kind-dot" style="background:${dot}"></span>${esc(occName(e))}${e.hidden?` <i style="color:#90a4ae">${t.holHidden}</i>`:''}`;
+    const kindCell = e.custom
+      ? `<select data-act="ckind" data-key="${e.key}"><option value="holiday"${e.kind==='holiday'?' selected':''}>${t.kindHoliday}</option><option value="observance"${e.kind==='observance'?' selected':''}>${t.kindObservance}</option></select>`
+      : (e.kind==='holiday' ? t.kindHoliday : t.kindObservance);
+    const ov = (state.holidayOverrides||{})[e.key];
+    let actions = '';
+    if(e.custom) actions = `<button class="btn btn-sm btn-danger" data-act="cdel" data-key="${e.key}">${t.holDelete}</button>`;
+    else {
+      if(ov && (ov.start || ov.days)) actions += `<button class="btn btn-sm btn-outline" data-act="reset" data-key="${e.key}">${t.holReset}</button> `;
+      actions += `<button class="btn btn-sm btn-outline" data-act="hide" data-key="${e.key}">${e.hidden ? t.holShow : t.holHide}</button>`;
+    }
+    html += `<tr class="${e.key===holFlashKey?'flash':''}" style="${e.hidden?'opacity:.55':''}">
+      <td>${nameCell}</td><td>${kindCell}</td>
+      <td><input type="date" data-act="start" data-key="${e.key}" value="${e.start}"></td>
+      <td><input type="number" min="1" max="40" data-act="days" data-key="${e.key}" value="${e.days}"></td>
+      <td style="white-space:nowrap">${fmtDMY(addDaysYmd(e.end,-1))}</td>
+      <td><span class="src-badge src-${e.src}">${srcLabel(e.src)}</span></td>
+      <td style="white-space:nowrap">${actions}</td></tr>`;
+  });
+  html += `<tr><td><input type="text" dir="auto" id="holNewName" placeholder="${t.holNewName}" style="width:100%"></td>
+    <td><select id="holNewKind"><option value="holiday">${t.kindHoliday}</option><option value="observance">${t.kindObservance}</option></select></td>
+    <td><input type="date" id="holNewStart" value="${holNewStart || (holYear+'-01-01')}"></td>
+    <td><input type="number" id="holNewDays" min="1" max="40" value="1"></td><td></td><td></td>
+    <td><button class="btn btn-sm" id="holAddBtn">${t.holAdd}</button></td></tr>`;
+  html += `</tbody></table></div>
+    <div class="modal-note">${t.holNote}<br>
+    <a href="https://www.omanobserver.om/article/1181777/oman/labour/except-for-eids-oman-announces-public-holidays-for-2026" target="_blank" rel="noopener">Oman Observer – 2026 holidays</a> ·
+    <a href="https://www.omanobserver.om/article/1129420/oman/his-majesty/royal-decree-specifies-official-holidays-in-oman" target="_blank" rel="noopener">Royal Decree on official holidays</a> ·
+    <a href="https://gulfnews.com/world/gulf/oman/oman-announces-eid-al-fitr-holiday-from-march-19-to-23-1.500470727" target="_blank" rel="noopener">Eid Al Fitr 2026</a> ·
+    <a href="https://www.omanobserver.om/article/1189816/oman/community/eid-al-adha-holidays-announced-in-oman" target="_blank" rel="noopener">Eid Al Adha 2026</a> ·
+    <a href="https://timesofoman.com/article/178278-oman-announces-4-day-national-day-break-in-november" target="_blank" rel="noopener">National Day 2026</a></div>`;
+  const body = document.getElementById('holBody');
+  body.innerHTML = html;
+
+  body.querySelectorAll('[data-act]').forEach(el=>{
+    const key = el.dataset.key, act = el.dataset.act;
+    const custom = key.startsWith('c:') ? (state.customEvents||[]).find(c=>'c:'+c.id===key) : null;
+    if(act==='start') el.onchange = ()=>{ if(!el.value) return; holFlashKey = key; if(custom){ custom.start = el.value; afterHolidayChange(); } else setHolOverride(key, { start: el.value }); };
+    if(act==='days')  el.onchange = ()=>{ const v = Math.max(1, parseInt(el.value,10)||1); holFlashKey = key; if(custom){ custom.days = v; afterHolidayChange(); } else setHolOverride(key, { days: v }); };
+    if(act==='reset') el.onclick = ()=>{ holFlashKey = key; setHolOverride(key, { start:null, days:null }); };
+    if(act==='hide')  el.onclick = ()=>{ const cur = ((state.holidayOverrides||{})[key]||{}).hidden; setHolOverride(key, { hidden: !cur }); };
+    if(act==='cname') el.onchange = ()=>{ if(custom){ custom.name = el.value; afterHolidayChange(); } };
+    if(act==='ckind') el.onchange = ()=>{ if(custom){ custom.kind = el.value; afterHolidayChange(); } };
+    if(act==='cdel')  el.onclick = ()=>{ state.customEvents = (state.customEvents||[]).filter(c=>'c:'+c.id!==key); afterHolidayChange(); };
+  });
+  document.getElementById('holAddBtn').onclick = ()=>{
+    const name = document.getElementById('holNewName').value.trim();
+    const start = document.getElementById('holNewStart').value;
+    const days = Math.max(1, parseInt(document.getElementById('holNewDays').value,10)||1);
+    if(!name || !start){ document.getElementById('holNewName').focus(); return; }
+    if(!state.customEvents) state.customEvents = [];
+    const id = Date.now().toString(36);
+    state.customEvents.push({ id, name, kind: document.getElementById('holNewKind').value, start, days });
+    holYear = parseInt(start.slice(0,4),10); holFlashKey = 'c:'+id; holNewStart='';
+    afterHolidayChange();
+  };
+  const fl = body.querySelector('tr.flash'); if(fl) fl.scrollIntoView({block:'nearest'});
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !document.getElementById('holModal').classList.contains('hidden')) closeHolidays(); });
+
 /* ================= INIT ================= */
+/* Migrate data saved by older versions: the old per-period "oldPo" numbers were typed by hand and
+   never carried forward. Only Period 1's value is kept (it is the true opening balance);
+   later periods now carry forward automatically. */
+function migrateOldPo(){
+  Object.keys(state.periods).forEach(k=>{
+    const p = state.periods[k];
+    if(!p || !p.duty) return;
+    Object.keys(p.duty).forEach(id=>{
+      const rec = p.duty[id];
+      if(!rec) return;
+      if(rec.oldPoOverride === undefined && parseInt(k,10) === 1 && parseFloat(rec.oldPo) > 0){
+        rec.oldPoOverride = parseFloat(rec.oldPo);
+      }
+      delete rec.oldPo;
+    });
+  });
+}
+
 function init(skipLoad){
   if(!skipLoad) loadFromStorage();
   if(!state.periods) state.periods = {};
@@ -1333,7 +2278,16 @@ function init(skipLoad){
   if(!state.gov) state.gov = 'Dhofar / ظفار';
   if(!state.viewingTab) state.viewingTab = 'period';
   if(!state.currentPeriod) state.currentPeriod = 1;
+  if(!state.globalStartDate) state.globalStartDate = defaultStartDate();
 
+  state.viewMasterMode = false;
+  if(!state.holidayOverrides) state.holidayOverrides = {};
+  if(!state.customEvents) state.customEvents = [];
+  invalidateEvents();
+  migrateOldPo();
+  // Always open on today's period
+  const cp = detectCurrentPeriod();
+  rangeStatus = cp.status; state.currentPeriod = cp.n; state.viewingTab = 'period';
   ensureAllPeriodsUpTo(state.currentPeriod);
   Object.keys(state.periods).forEach(n=>{
     if(state.periods[n].panelOpen===undefined) state.periods[n].panelOpen = !state.periods[n].locked;
@@ -1346,9 +2300,10 @@ function init(skipLoad){
   renderCurrentView();
 }
 let _bound=false;
-function bindHeaderInputsOnce_safe(){ if(_bound) return; _bound=true; bindHeaderInputsOnce(); }
+function bindHeaderInputsOnce_safe(){ if(_bound) return; _bound=true; bindHeaderInputsOnce(); bindSelectionOnce(); }
 
 window.addEventListener('DOMContentLoaded', ()=>init(false));
 </script>
-</body>
-</html>
+
+
+</body></html>
