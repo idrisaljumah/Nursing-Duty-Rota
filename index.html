@@ -785,7 +785,7 @@ function syncUnlockedPeriodStaff(n){
         const snap = p.snapshots[id];
         const isActive = (p.activeMap && p.activeMap[id] !== undefined) ? p.activeMap[id] : false;
         if(isActive){
-          p.staff.push({ id: snap.id, des: snap.des, stno: snap.stno, name: snap.name, cat: snap.cat||'nurse', alStart: snap.alStart||'', alReturn: snap.alReturn||'', active: true });
+          p.staff.push({ id: snap.id, des: snap.des, stno: snap.stno, name: snap.name, cat: snap.cat||'nurse', alStart: snap.alStart||'', alReturn: snap.alReturn||'', alHistory: snap.alHistory, active: true });
         }
       }
     });
@@ -819,6 +819,7 @@ function isOnLeave(st, dateStr){
    so balances of past days never change because the next leave was entered. */
 function archivePastLeave(m){
   if(!m || !m.alStart || !m.alReturn || m.alStart >= m.alReturn) return;
+  if(m.alStart < '2000-01-01' || daysBetween(m.alStart, m.alReturn) > 366) return;   // ignore half-typed / implausible ranges
   const today = ymd(new Date());
   if(m.alStart >= today) return;
   const r = m.alReturn < today ? m.alReturn : today;
@@ -1257,7 +1258,7 @@ function commitPeriodStaff(){
   
   p.snapshots = {};
   p.staff.forEach(s => {
-    p.snapshots[s.id] = { id: s.id, des: s.des, stno: s.stno, name: s.name, cat: s.cat, alStart: s.alStart, alReturn: s.alReturn, active: s.active };
+    p.snapshots[s.id] = { id: s.id, des: s.des, stno: s.stno, name: s.name, cat: s.cat, alStart: s.alStart, alReturn: s.alReturn, alHistory: s.alHistory, active: s.active };
   });
 
   ensureDutyRecords(state.currentPeriod);
