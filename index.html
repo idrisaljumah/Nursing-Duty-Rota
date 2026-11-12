@@ -135,7 +135,7 @@
   .cat-other    { background-color: #f3e5f5 !important; }
 
   /* ---------- Rota cell states ---------- */
-  td input.name-input { text-align: start !important; }
+  td input.name-input { text-align: start !important; text-overflow: ellipsis; }
   .td-ram { background-color: #f3f9ec; }
   .td-hol { background-color: #e0f7fa; }
   td.td-night { background-color: var(--night-bg); }
@@ -149,6 +149,19 @@
   td.duty-cell.sel { background-color:#bbdefb !important; background-image:none; box-shadow: inset 0 0 0 2px var(--primary); }
   body.no-select, body.no-select * { user-select:none !important; }
 
+  .val-incomplete { color:#90a4ae !important; text-decoration: underline dotted; cursor: help; }
+  tr.grp-head td { font-weight:700; font-size:11.5px; color:#37474f; text-align:start !important; padding:3px 8px !important; border-top:2px solid #90a4ae; letter-spacing:.2px; }
+  tr.grp-head:not([class*="cat-"]) td { background:#f5f7f8; }
+  tr.grp-head.cat-school td { background:#e3f2fd; } tr.grp-head.cat-orderly td { background:#fff3e0; } tr.grp-head.cat-midwife td { background:#fce4ec; } tr.grp-head.cat-other td { background:#f3e5f5; }
+  .grp-move { border:1px solid #b0bec5; background:#fff; border-radius:4px; font-size:10px; padding:0 5px; margin-inline-end:3px; cursor:pointer; line-height:16px; }
+  .grp-move:disabled { opacity:.35; cursor:default; }
+  .grp-toggle { font-size:12px; display:inline-flex; align-items:center; gap:4px; color:#455a64; }
+  tr.shift-sub td { font-weight:500 !important; font-size:10.5px; opacity:.9; }
+  td.shift-sub-label { text-align:start !important; padding-inline-start:22px !important; }
+  td.shift-sub-label .sw { display:inline-block; width:10px; height:9px; border:1px solid #b0bec5; border-radius:2px; margin-inline-end:4px; vertical-align:middle; }
+  @media print { tr.grp-head { break-after: avoid; } tr.grp-head td { padding:1px 6px !important; font-size:9px; } table.rota-table tr.shift-sub td { font-size:6.5px; padding:0 1px !important; height:8px !important; line-height:7px; border-top-width:0; } td.shift-sub-label .sw { height:5px; width:7px; } table.rota-table tr.grp-head td { height:10px !important; line-height:9px; font-size:8px; border-top-width:1px; } }
+  .rota-toast { position:fixed; top:16px; left:50%; transform:translateX(-50%); background:#263238; color:#fff; padding:8px 14px; border-radius:8px; font-size:12.5px; z-index:120; opacity:0; pointer-events:none; transition:opacity .2s; }
+  .rota-toast.show { opacity:1; }
   /* ---------- Legends ---------- */
   .rota-legend { display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:8px; font-size:11px; color:#455a64; align-items:center; }
   .rota-legend .sw { display:inline-block; width:14px; height:12px; border:1px solid #b0bec5; border-radius:2px; vertical-align:middle; margin-inline-end:4px; }
@@ -218,6 +231,7 @@
   <div class="tools">
     <label id="lblStartDate"><input type="date" id="startDatePicker"> Period 1 start date:</label>
     <button class="btn btn-lang btn-sm" onclick="toggleLang()" id="btnLang">العربية</button>
+    <button class="btn btn-sm btn-outline" onclick="openDeviceHelp()" id="btnDeviceTop" title="">💻 <span id="lblDeviceTop">Another device</span></button>
     <button class="btn btn-sm" onclick="window.print()" id="btnPrint">Print / PDF</button>
     <div id="settingsWrap" style="position:relative;">
       <button class="btn btn-outline btn-sm gear" id="btnSettings" onclick="toggleSettings(event)" title="Settings">⚙</button>
@@ -225,10 +239,11 @@
         <button class="menu-item" onclick="openCodes()" id="btnCodes">📘 Codes</button>
         <button class="menu-item" onclick="closeSettings();openHolidays()" id="btnHolidays">🗓 Holidays &amp; Occasions</button>
         <button class="menu-item" onclick="closeSettings();exportCSV()" id="btnExport">Export CSV</button>
-        <button class="menu-item" onclick="closeSettings();exportJSON()" id="btnExportJson">Export JSON</button>
-        <label class="menu-item" style="cursor:pointer;"><span id="btnImportJson">Import JSON</span>
-          <input type="file" accept="application/json" style="display:none" onchange="closeSettings();importJSON(event)">
+        <button class="menu-item" onclick="closeSettings();exportJSON()" id="btnExportJson">💾 Save backup file</button>
+        <label class="menu-item" style="cursor:pointer;"><span id="btnImportJson">📂 Open backup file</span>
+          <input type="file" id="importFileInput" accept=".json,application/json" style="display:none" onchange="closeSettings();importJSON(event)">
         </label>
+        <button class="menu-item" onclick="closeSettings();openDeviceHelp()" id="btnDeviceHelp">💻 Work from another device</button>
         <button class="menu-item danger" onclick="closeSettings();resetAllData()" id="btnReset">Reset All Data</button>
       </div>
     </div>
@@ -324,6 +339,7 @@
         <span class="staff-status dirty" id="staffStatus" style="margin-inline-start:8px;"></span>
       </div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <label class="grp-toggle"><input type="checkbox" id="chkGroupRows" onchange="setGroupRows(this.checked)"> <span id="lblGroupRows">Group by staff type</span></label>
         <button class="btn btn-sm btn-outline" id="btnToggleStaffPanel" onclick="toggleStaffPanelOpen()">Hide list</button>
         <button class="btn btn-sm hidden" id="btnUnlockPeriod" onclick="unlockPeriodStaff()">🔓 Unlock to edit</button>
         <button class="btn btn-sm" id="btnAddStaff" onclick="addStaffRow()">+ Add Staff</button>
@@ -380,11 +396,19 @@
   <input type="text" id="selCode" maxlength="5" autocomplete="off">
   <button class="btn btn-sm" id="selApply" onclick="applySelCode()">Apply</button>
   <span id="selChips" style="display:flex;gap:4px;flex-wrap:wrap;"></span>
+  <button class="btn btn-sm btn-outline" id="selCopy" onclick="barCopy()">⧉ Copy</button>
+  <button class="btn btn-sm btn-outline" id="selPaste" onclick="barPaste()">📋 Paste</button>
   <button class="btn btn-sm btn-outline" id="selClearCells" onclick="applySelValue('')">Clear</button>
   <button class="btn btn-sm btn-outline hidden" id="selUndo" onclick="undoBulk()">↶ Undo</button>
   <button class="x" onclick="clearSelection()" title="Esc">✕</button>
 </div>
 <div class="occ-tip hidden" id="occTip"></div>
+<div class="modal-back hidden" id="devModal" onclick="if(event.target===this)closeDeviceHelp()">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head"><h3 id="devTitle">Work from another device</h3><button class="btn btn-sm btn-outline" onclick="closeDeviceHelp()">✕</button></div>
+    <div class="modal-body" id="devBody"></div>
+  </div>
+</div>
 <div class="modal-back hidden" id="holModal" onclick="if(event.target===this)closeHolidays()">
   <div class="modal">
     <div class="modal-head">
@@ -487,7 +511,7 @@ const OTHER_KEY = '__other__';
 const TEXT = {
   ar: {
     pageTitle:"Dhofar Smart Duty Rota", lblStartDate:"تاريخ بداية الفترة 1:",
-    btnReset:"إعادة ضبط البيانات بالكامل", btnExport:"تصدير CSV", btnExportJson:"تصدير JSON", btnImportJson:"استيراد JSON",
+    btnReset:"إعادة ضبط البيانات بالكامل", btnExport:"تصدير CSV", btnExportJson:"💾 حفظ ملف نسخة احتياطية", btnImportJson:"📂 فتح ملف نسخة احتياطية",
     btnSave:"حفظ تلقائي", btnPrint:"طباعة / تصدير PDF", btnLang:"English",
     lblGov:"المحافظة:", lblWilayat:"الولاية:", lblInst:"المؤسسة الصحية:", lblDept:"القسم:",
     lblDailyHrs:"ساعات الدوام اليومية:", lblWeeklyHrs:"ساعات الأسبوع:",
@@ -530,7 +554,7 @@ const TEXT = {
   },
   en: {
     pageTitle:"Dhofar Smart Duty Rota", lblStartDate:"Period 1 start date:",
-    btnReset:"Reset All Data", btnExport:"Export CSV", btnExportJson:"Export JSON", btnImportJson:"Import JSON",
+    btnReset:"Reset All Data", btnExport:"Export CSV", btnExportJson:"💾 Save backup file", btnImportJson:"📂 Open backup file",
     btnSave:"Save", btnPrint:"Print / PDF", btnLang:"العربية",
     lblGov:"Governorate:", lblWilayat:"Wilayat:", lblInst:"Health Institution:", lblDept:"Department:",
     lblDailyHrs:"Daily hours:", lblWeeklyHrs:"Weekly hours:",
@@ -574,13 +598,23 @@ const TEXT = {
 };
 
 Object.assign(TEXT.en, {
+  btnDeviceHelp:'💻 Work from another device', lblDeviceTop:'Another device', devTitle:'Work from another device',
+  devIntro:'Your rota is saved only in this browser on this computer. Nothing is stored on the internet, so the link alone opens an empty rota on another device. Move it with a backup file:',
+  devSteps:['On this computer: ⚙ → <b>💾 Save backup file</b>. A file named like <i>Duty_Rota_…json</i> is downloaded.','Send the file to yourself (e-mail, WhatsApp, USB stick or cloud drive).','On the other device, open the same rota link → ⚙ → <b>📂 Open backup file</b> and choose the file. Everything appears — no re-typing.'],
+  devTip:'Repeat in the other direction when you come back, so the newest version is always the one you continue with. Keep backup files private: they contain staff names and leave.',
+  devSaveNow:'💾 Save backup file now',
+  importConfirm:(name,date)=>`Replace ALL rota data in this browser with the backup file "${name}"${date?` (saved ${date})`:''}?\n\nTip: save a backup of the current data first if you may need it.`,
+  importBad:'This file is not a Duty Rota backup file, or it is damaged. Nothing was changed.', importDone:'Backup loaded and saved in this browser.',
+  selCopy:'⧉ Copy', selPaste:'📋 Paste', pasteSkipped:n=>`${n} unknown code(s) were skipped`, copiedMsg:(r,c)=>`Copied ${r} row(s) × ${c} day(s) — select cells and press Ctrl+V or Paste`,
+  groupRows:'Group by staff type', grpUp:'Move this group up', grpDown:'Move this group down',
+  incompleteTip:n=>`Shortfall not deducted yet: ${n} working day(s) still blank in this row`, dueTip:'Required hours after public holidays and this person\'s leave days',
   thStaffCat:"Staff type", thAlStart:"AL start", thAlReturn:"AL return (back to work)", thAlDays:"AL days",
   staffHint:"Tick active staff for this period. Drag ⋮⋮ to reorder — the rota follows this order. Planned annual leave (AL) is blocked automatically in the rota. Locking freezes this period's list.",
   dragTip:"Drag to reorder", dragLockedTip:"Unlock the list to reorder",
   alDaysFmt:(c,w)=>`${c} d`, alDaysTip:(c,w)=>`${c} calendar days · ${w} working days (excl. Fri/Sat & public holidays)`, alBad:"Return date must be after the start date",
   alCellTip:"Planned annual leave — type a code to override this day",
   codesTitle:"Duty & Leave Codes", showAllCodes:"Show all codes ▾", hideAllCodes:"Hide full list ▴",
-  codesHint:"Tip: select several cells (drag, Shift+click or Ctrl+click) then click a code to fill them all. With one cell focused, clicking a code fills that cell.",
+  codesHint:"Tip: select several cells (drag, Shift+click or Ctrl+click) then click a code to fill them all. Copy a pattern with Ctrl+C and paste it with Ctrl+V — pasting over a larger selection repeats the pattern.",
   selCount:n=>`${n} cells selected`, selApply:"Apply", selClear:"Clear", selUndo:"↶ Undo", selPlaceholder:"Code",
   holTitle:"Holidays & Occasions — Oman", holMenu:"🗓 Holidays & Occasions",
   holCols:["Occasion","Type","Start date","Days","End","Source",""],
@@ -594,13 +628,23 @@ Object.assign(TEXT.en, {
   cats:{ nurse:"Nurse", school:"School Nurse", orderly:"Medical Orderly", midwife:"Midwife", other:"Other" }
 });
 Object.assign(TEXT.ar, {
+  btnDeviceHelp:'💻 العمل من جهاز آخر', lblDeviceTop:'جهاز آخر', devTitle:'العمل من جهاز آخر',
+  devIntro:'الجدول محفوظ فقط في هذا المتصفح على هذا الجهاز ولا يُحفظ على الإنترنت، لذلك فتح الرابط على جهاز آخر يُظهر جدولاً فارغاً. انقل بياناتك بملف نسخة احتياطية:',
+  devSteps:['على هذا الجهاز: ⚙ ← <b>💾 حفظ ملف نسخة احتياطية</b>. سيتم تنزيل ملف باسم مثل <i>Duty_Rota_…json</i>.','أرسل الملف لنفسك (بريد إلكتروني، واتساب، فلاش USB أو تخزين سحابي).','على الجهاز الآخر افتح نفس رابط الجدول ← ⚙ ← <b>📂 فتح ملف نسخة احتياطية</b> واختر الملف. ستظهر كل البيانات بدون إعادة إدخال.'],
+  devTip:'كرر نفس الخطوات عند العودة حتى تعمل دائماً على أحدث نسخة. احتفظ بملفات النسخ الاحتياطية بسرية لأنها تحتوي أسماء الموظفين وإجازاتهم.',
+  devSaveNow:'💾 حفظ ملف نسخة احتياطية الآن',
+  importConfirm:(name,date)=>`هل تريد استبدال جميع بيانات الجدول في هذا المتصفح بملف النسخة الاحتياطية "${name}"${date?` (محفوظ ${date})`:''}؟\n\nتلميح: احفظ نسخة احتياطية من البيانات الحالية أولاً إذا كنت قد تحتاجها.`,
+  importBad:'هذا الملف ليس نسخة احتياطية لجدول المناوبات أو أنه تالف. لم يتم تغيير أي شيء.', importDone:'تم تحميل النسخة الاحتياطية وحفظها في هذا المتصفح.',
+  selCopy:'⧉ نسخ', selPaste:'📋 لصق', pasteSkipped:n=>`تم تجاهل ${n} رمز غير معروف`, copiedMsg:(r,c)=>`تم نسخ ${r} صف × ${c} يوم — حدد الخلايا ثم Ctrl+V أو لصق`,
+  groupRows:'تجميع حسب الفئة', grpUp:'نقل المجموعة للأعلى', grpDown:'نقل المجموعة للأسفل',
+  incompleteTip:n=>`لم يُخصم النقص بعد: ${n} يوم عمل فارغ في هذا الصف`, dueTip:'الساعات المطلوبة بعد خصم العطل الرسمية وإجازات الموظف',
   thStaffCat:"الفئة", thAlStart:"بداية الإجازة", thAlReturn:"تاريخ العودة للعمل", thAlDays:"أيام الإجازة",
   staffHint:"حدد الموظفين المفعّلين لهذه الفترة. اسحب ⋮⋮ لإعادة الترتيب — الجدول يتبع هذا الترتيب. الإجازة السنوية المخططة تُحجز تلقائياً في الجدول. القفل يجمّد قائمة هذه الفترة.",
   dragTip:"اسحب لإعادة الترتيب", dragLockedTip:"افتح القفل لإعادة الترتيب",
   alDaysFmt:(c,w)=>`${c} يوم`, alDaysTip:(c,w)=>`${c} يوماً تقويمياً · ${w} يوم عمل (بدون الجمعة والسبت والعطل الرسمية)`, alBad:"تاريخ العودة يجب أن يكون بعد تاريخ البداية",
   alCellTip:"إجازة سنوية مخططة — اكتب رمزاً لتغيير هذا اليوم",
   codesTitle:"رموز الدوام والإجازات", showAllCodes:"عرض جميع الرموز ▾", hideAllCodes:"إخفاء القائمة الكاملة ▴",
-  codesHint:"تلميح: حدد عدة خلايا (بالسحب أو Shift+نقر أو Ctrl+نقر) ثم انقر على رمز لتعبئتها كلها. عند تحديد خلية واحدة، النقر على الرمز يعبئها.",
+  codesHint:"تلميح: حدد عدة خلايا (بالسحب أو Shift+نقر أو Ctrl+نقر) ثم انقر على رمز لتعبئتها كلها. انسخ نمط المناوبات بـ Ctrl+C والصقه بـ Ctrl+V — اللصق فوق تحديد أكبر يكرر النمط.",
   selCount:n=>`${n} خلية محددة`, selApply:"تطبيق", selClear:"مسح", selUndo:"↶ تراجع", selPlaceholder:"رمز",
   holTitle:"العطل والمناسبات — سلطنة عُمان", holMenu:"🗓 العطل والمناسبات",
   holCols:["المناسبة","النوع","تاريخ البداية","الأيام","النهاية","المصدر",""],
@@ -650,6 +694,8 @@ const CODES = {
   RHD:{h:12,c:"Ramadan",en:"Half Day",ar:"نصف يوم"}, RH1:{h:12,c:"Ramadan",en:"Half Day (1)",ar:"نصف يوم (1)"}, RH2:{h:12,c:"Ramadan",en:"Half Day (2)",ar:"نصف يوم (2)"},
   R19:{h:19,c:"Ramadan",en:"A/E/N in Ramadan",ar:"مسائي/ليلي/سهر في رمضان"}, RFD:{h:24,c:"Ramadan",en:"Full Day",ar:"يوم كامل"}, RF1:{h:24,c:"Ramadan",en:"Full Day (1)",ar:"يوم كامل (1)"}, RF2:{h:24,c:"Ramadan",en:"Full Day (2)",ar:"يوم كامل (2)"},
 
+  SCH:{h:7,hr:5,c:"Normal Duty",en:"School Duty",ar:"دوام مدرسي"},
+
   AL:{h:0,c:"Regular Leave",en:"Annual Leave",ar:"إجازة اعتيادية"}, SHL:{h:0,c:"Regular Leave",en:"Short Leave",ar:"إجازة قصيرة"}, EXT:{h:0,c:"Regular Leave",en:"Extend Leave",ar:"تمديد إجازة"},
   HL:{h:0,c:"Regular Leave",en:"Al-Haj Leave",ar:"إجازة حج"}, STD:{h:0,c:"Regular Leave",en:"Study Leave",ar:"إجازة دراسية"}, UPL:{h:0,c:"Regular Leave",en:"Unpaid Leave",ar:"إجازة بدون راتب"},
   LWS:{h:0,c:"Regular Leave",en:"Leave Without Salary",ar:"إجازة بدون مرتب"}, ORL:{h:0,c:"Regular Leave",en:"Oman Representation Leave",ar:"إجازة تمثيل عمان"},
@@ -662,14 +708,15 @@ const CODES = {
   EDL:{h:0,c:"Irregular Leave",en:"Edda Leave",ar:"إجازة عدة"}, AB:{h:0,c:"Irregular Leave",en:"Absent",ar:"غياب بدون عذر"}, SE:{h:0,c:"Irregular Leave",en:"Sports Event",ar:"فعالية رياضية"},
 
   OJT:{h:0,c:"Other Institutions",en:"On Job Training",ar:"تدريب أثناء العمل"}, ATC:{h:0,c:"Other Institutions",en:"Attachment",ar:"إلحاق"}, REF:{h:0,c:"Other Institutions",en:"Refreshment",ar:"دورة تنشيطية"},
-  COV:{h:0,c:"Other Institutions",en:"Covering Other Center",ar:"تغطية مركز آخر"}, ROT:{h:0,c:"Other Institutions",en:"Rotation",ar:"تدوير"}, DEP:{h:0,c:"Other Institutions",en:"Deputized",ar:"إنابة"},
+  COV:{h:7,hr:5,legacyH:0,c:"Other Institutions",en:"Covering Other Center",ar:"تغطية مركز آخر"}, ROT:{h:0,c:"Other Institutions",en:"Rotation",ar:"تدوير"}, DEP:{h:0,c:"Other Institutions",en:"Deputized",ar:"إنابة"},
 
   TRA:{h:0,c:"Exit",en:"Transfer",ar:"نقل"}, TRO:{h:0,c:"Exit",en:"Transfer Out",ar:"نقل خارج"}, RET:{h:0,c:"Exit",en:"Retired",ar:"تقاعد"}, RES:{h:0,c:"Exit",en:"Resigned",ar:"استقالة"}, TER:{h:0,c:"Exit",en:"Terminated",ar:"إنهاء خدمة"},
 
   O:{h:0,c:"Rest / Off",en:"OFF",ar:"راحة"}, PO:{h:0,c:"Rest / Off",en:"Pending Off due",ar:"بدل راحة مستحق"}, PH:{h:0,c:"Rest / Off",en:"Public Holiday",ar:"عطلة رسمية"}, OC:{h:0,c:"Rest / Off",en:"Off & Call",ar:"راحة مع استدعاء"},
   APP:{h:0,c:"Rest / Off",en:"Appointment",ar:"موعد"}
 };
-const SHIFT_HOURS = {}; Object.keys(CODES).forEach(k=> SHIFT_HOURS[k]=CODES[k].h);
+/* SHIFT_HOURS = original fixed hours, used only by the legacy calculation of periods before RULES_FROM */
+const SHIFT_HOURS = {}; Object.keys(CODES).forEach(k=> SHIFT_HOURS[k] = (CODES[k].legacyH !== undefined) ? CODES[k].legacyH : CODES[k].h);
 
 const NUM_PERIODS = 13;
 const ROSTER_DAYS = 28;
@@ -715,6 +762,7 @@ let state = {
   globalStartDate: defaultStartDate(),
   nextStaffId: 1,
   masterStaff: [],      // Array of master staff objects: [{id, des, stno, name}]
+  groupRows: true, groupOrder: ['nurse','school','midwife','orderly','other'],
   viewMasterMode: false, // Toggle between Period Staff view and Master Directory view
   periods: {},          // periods[n] = { ramadan, locked, panelOpen, activeMap, snapshots, staff, duty:{[id]:{oldPoOverride?,duties:[28]}} }
   currentPeriod: 1,
@@ -764,6 +812,21 @@ function fmtDMY(str){ const [y,m,d]=str.split('-'); return d+'/'+m+'/'+y; }
 function isOnLeave(st, dateStr){ const L = staffLeave(st); return !!(L.s && L.r && L.s <= dateStr && dateStr < L.r); }
 function catClass(cat){ return (cat && cat!=='nurse') ? 'cat-'+cat : ''; }
 const STAFF_CATS = ['nurse','school','orderly','midwife','other'];
+/* ---- Grouping by staff type (display only: never rewrites p.staff / p.order / masterStaff) ---- */
+function normGroupOrder(){
+  const out = [];
+  (Array.isArray(state.groupOrder) ? state.groupOrder : []).forEach(c=>{ if(STAFF_CATS.includes(c) && !out.includes(c)) out.push(c); });
+  STAFF_CATS.forEach(c=>{ if(!out.includes(c)) out.push(c); });
+  return out;
+}
+function displayStaff(list){
+  const items = list.map((st, idx)=>{ let cat = staffCat(st); if(!STAFF_CATS.includes(cat)) cat = 'other'; return { st, idx, cat }; });
+  if(!state.groupRows) return items;
+  const order = normGroupOrder();
+  return items.map((it,k)=>({ it, k })).sort((a,b)=> (order.indexOf(a.it.cat) - order.indexOf(b.it.cat)) || (a.k - b.k)).map(x=>x.it);
+}
+function groupsShown(items){ return !!state.groupRows && new Set(items.map(i=>i.cat)).size > 1; }
+function setGroupRows(on){ state.groupRows = !!on; saveToStorage(true); renderCurrentView(); }
 function ensurePeriod(n){
   if(state.periods[n]) {
     syncUnlockedPeriodStaff(n);
@@ -848,7 +911,44 @@ function propagateExit(id){
 */
 function round2(x){ return Math.round((x + Number.EPSILON) * 100) / 100; }
 
-function periodWork(p, rec){
+/* ---- Rules engine ----
+   Periods ending before RULES_FROM keep the original calculation (legacyWork) so past balances never move.
+   From RULES_FROM on:
+     required(day) = 0 on Fri/Sat and on official holidays, otherwise 7h (5h in a Ramadan period)
+     due           = sum of required(day) over the days the person is NOT excused (leave, training elsewhere, exit, planned AL)
+     net           = worked − due  →  earned = max(net,0)/std ;  used = max(−net,0)/std (only when the row has no blank working day)
+     PO is just a label (0h); it no longer deducts on its own, so nothing is counted twice. */
+const RULES_FROM = '2026-11-01';
+const AUTO_DEDUCT = true;
+const EXCUSED_CATS = new Set(['Regular Leave','Irregular Leave','Exit']);
+function periodEndYmd(n){ const s = periodStartDate(n); const d = new Date(s); d.setDate(s.getDate()+ROSTER_DAYS-1); return ymd(d); }
+function newRules(n){ return periodEndYmd(n) >= RULES_FROM; }
+function codeHours(code, n){
+  const v = CODES[code]; if(!v) return 0;
+  if(n && !newRules(n) && v.legacyH !== undefined) return v.legacyH;
+  const p = n ? state.periods[n] : null;
+  if(p && p.ramadan && v.hr !== undefined) return v.hr;
+  return v.h;
+}
+let _reqCache = {};
+function clearReqCache(){ _reqCache = {}; }
+function periodReq(n){
+  const p = state.periods[n] || {};
+  const key = n+'|'+(p.ramadan?1:0)+'|'+state.globalStartDate;
+  if(_reqCache[key]) return _reqCache[key];
+  const std = p.ramadan ? 5 : 7, start = periodStartDate(n), nr = newRules(n);
+  const req = [];
+  for(let i=0;i<ROSTER_DAYS;i++){
+    const d = new Date(start); d.setDate(start.getDate()+i);
+    const dow = d.getDay();
+    let r = (dow===5 || dow===6) ? 0 : std;
+    if(r && nr && occasionsOn(ymd(d)).some(o=>o.kind==='holiday')) r = 0;
+    req.push(r);
+  }
+  return (_reqCache[key] = req);
+}
+
+function legacyWork(p, rec){
   const isRamadan = !!p.ramadan;
   const stdDay = isRamadan ? 5 : 7;
   const dueHours = isRamadan ? 100 : 140;
@@ -872,9 +972,41 @@ function periodWork(p, rec){
   }
   const totalOt = otNormal + otRamadan;
   const earned = totalOt > 0 ? totalOt / stdDay : 0;
-  return { workedHours, workedDays, dueHours, otNormal, otRamadan, totalOt, earned, poUsed };
+  return { workedHours, workedDays, dueHours, otNormal, otRamadan, totalOt, earned, poUsed, incomplete:false, legacy:true };
 }
 
+function periodWork(p, rec, n, st){
+  if(!n || !newRules(n)) return legacyWork(p, rec);
+  const isRamadan = !!p.ramadan;
+  const std = isRamadan ? 5 : 7;
+  const req = periodReq(n);
+  const start = periodStartDate(n);
+  const duties = (rec && rec.duties) ? rec.duties : [];
+  let workedHours = 0, workedDays = 0, dueHours = 0, poLabels = 0, blanks = 0, exited = false;
+  for(let i=0;i<ROSTER_DAYS;i++){
+    const code = (duties[i]||'').trim();
+    const v = CODES[code];
+    const hrs = v ? codeHours(code, n) : 0;
+    if(hrs > 0){ workedHours += hrs; workedDays++; }
+    if(code === PO_CODE) poLabels++;
+    if(v && v.c === 'Exit') exited = true;
+    let excused = exited || code === 'PH';
+    if(v && (EXCUSED_CATS.has(v.c) || (v.c === 'Other Institutions' && hrs === 0))) excused = true;
+    if(!code && st){ const d = new Date(start); d.setDate(start.getDate()+i); if(isOnLeave(st, ymd(d))) excused = true; }
+    if(!excused) dueHours += req[i];
+    if(!code && !excused && req[i] > 0) blanks++;
+  }
+  const net = workedHours - dueHours;
+  const ot = Math.max(0, net);
+  const otNormal = isRamadan ? 0 : ot, otRamadan = isRamadan ? ot : 0;
+  const earned = ot / std;
+  let poUsed, incomplete = false;
+  if(AUTO_DEDUCT){
+    if(net < 0 && blanks > 0){ poUsed = 0; incomplete = true; }
+    else poUsed = net < 0 ? round2(-net / std) : 0;
+  } else poUsed = poLabels;
+  return { workedHours, workedDays, dueHours, otNormal, otRamadan, totalOt: ot, earned, poUsed, incomplete, blanks, legacy:false };
+}
 function hasOverride(rec){
   return rec && rec.oldPoOverride !== undefined && rec.oldPoOverride !== null && !isNaN(parseFloat(rec.oldPoOverride));
 }
@@ -890,7 +1022,8 @@ function getPoBalance(n, id){
     let earned = 0, used = 0;
     const isActive = !!(p && p.staff && p.staff.some(s => s.id === id && s.active));
     if(isActive && rec){
-      const w = periodWork(p, rec);
+      const st = p.staff.find(s => s.id === id) || { id };
+      const w = periodWork(p, rec, k, st);
       earned = w.earned; used = w.poUsed;
     }
     bal = round2(opening + earned - used);
@@ -907,7 +1040,7 @@ function applyStaticText(){
   document.title = t.pageTitle;
   const map = {
     btnReset:t.btnReset, btnExport:t.btnExport, btnExportJson:t.btnExportJson,
-    btnImportJson:t.btnImportJson, btnCodes:t.tabCodes, btnPrint:t.btnPrint, btnLang:t.btnLang,
+    btnImportJson:t.btnImportJson, btnDeviceHelp:t.btnDeviceHelp, lblDeviceTop:t.lblDeviceTop, btnCodes:t.tabCodes, btnPrint:t.btnPrint, btnLang:t.btnLang,
     lblGov:t.lblGov, lblWilayat:t.lblWilayat, lblInst:t.lblInst, lblDept:t.lblDept,
     lblDailyHrs:t.lblDailyHrs, lblWeeklyHrs:t.lblWeeklyHrs, hMinistry:t.hMinistry, rotaTitle:t.rotaTitle,
     lblPeriodOf:t.lblPeriodOf, lblFrom:t.lblFrom, lblTo:t.lblTo, lblRamadan:t.lblRamadan,
@@ -1068,6 +1201,7 @@ function fillHeaderFromState(){
 }
 function onGlobalStartChange(){
   state.globalStartDate = startDatePicker.value || state.globalStartDate;
+  clearReqCache();
   const cp = detectCurrentPeriod();
   rangeStatus = cp.status; state.currentPeriod = cp.n; state.viewingTab = 'period';
   ensureAllPeriodsUpTo(cp.n);
@@ -1078,6 +1212,7 @@ function onGlobalStartChange(){
 function toggleRamadan(){
   const p = state.periods[state.currentPeriod];
   p.ramadan = document.getElementById('ramadanMode').checked;
+  clearReqCache();
   saveToStorage(true);
   renderPeriod(state.currentPeriod);
 }
@@ -1230,7 +1365,7 @@ function updateStaffField(id, field, val, rerender){
   if(row){
     if(field === 'des'){ const el = row.querySelector('.des-input'); if(el) el.value = val; }
     if(field === 'stno'){ const el = row.querySelector('.stno-input'); if(el) el.value = val; }
-    if(field === 'name'){ const el = row.querySelector('.name-input'); if(el) el.value = val; }
+    if(field === 'name'){ const el = row.querySelector('.name-input'); if(el){ el.value = val; el.title = val; if(el.parentElement) el.parentElement.title = val; } }
   }
 }
 let dragStaffId = null;
@@ -1244,6 +1379,8 @@ function renderStaffPanel(){
   document.getElementById('staffHint').textContent = t.staffHint;
   document.getElementById('lockDot').className = 'lock-dot ' + (locked?'locked':'unlocked');
   document.getElementById('btnToggleStaffPanel').textContent = p.panelOpen ? t.btnToggleHide : t.btnToggleShow;
+  document.getElementById('chkGroupRows').checked = !!state.groupRows;
+  document.getElementById('lblGroupRows').textContent = t.groupRows;
   document.getElementById('staffPanelBody').classList.toggle('hidden', !p.panelOpen);
   document.getElementById('btnUnlockPeriod').classList.toggle('hidden', !locked);
   document.getElementById('btnUnlockPeriod').textContent = t.btnUnlock;
@@ -1255,7 +1392,25 @@ function renderStaffPanel(){
   const tbody = document.getElementById('staffTbody');
   tbody.innerHTML = '';
 
-  p.staff.forEach((st, idx)=>{
+  const shownP = displayStaff(p.staff);
+  const headsP = groupsShown(shownP);
+  const order = normGroupOrder();
+  const presentCats = order.filter(c=> shownP.some(x=>x.cat===c));
+  let lastCatP = null;
+  shownP.forEach(({ st, idx, cat: gcat })=>{
+    if(headsP && gcat !== lastCatP){
+      lastCatP = gcat;
+      const h = document.createElement('tr'); h.className = 'grp-head ' + catClass(gcat); h.dataset.cat = gcat;
+      const td = document.createElement('td'); td.colSpan = 11;
+      const pi = presentCats.indexOf(gcat);
+      const up = document.createElement('button'); up.className='grp-move'; up.textContent='▲'; up.title=t.grpUp; up.disabled = pi<=0;
+      up.onclick = ()=> moveGroupAmongPresent(gcat, -1, presentCats);
+      const dn = document.createElement('button'); dn.className='grp-move'; dn.textContent='▼'; dn.title=t.grpDown; dn.disabled = pi>=presentCats.length-1;
+      dn.onclick = ()=> moveGroupAmongPresent(gcat, 1, presentCats);
+      td.appendChild(up); td.appendChild(dn);
+      td.appendChild(document.createTextNode(` ${t.cats[gcat]} (${shownP.filter(x=>x.cat===gcat).length})`));
+      h.appendChild(td); tbody.appendChild(h);
+    }
     const live = masterOf(st.id) || st;
     const cat = live.cat || 'nurse';
     const tr = document.createElement('tr');
@@ -1272,6 +1427,7 @@ function renderStaffPanel(){
     tr.ondragend = ()=>{ tr.draggable = false; tr.classList.remove('dragging'); clearDropMarks(); dragStaffId = null; };
     tr.ondragover = e=>{
       if(dragStaffId===null || dragStaffId===st.id) return;
+      if(state.groupRows){ const from = p.staff.find(x=>x.id===dragStaffId); if(from && staffCat(from) !== staffCat(st)) return; }
       e.preventDefault();
       const r = tr.getBoundingClientRect(); const before = (e.clientY - r.top) < r.height/2;
       clearDropMarks(); tr.classList.add(before ? 'drop-before' : 'drop-after');
@@ -1364,6 +1520,13 @@ function fillLeaveDays(td, s, r){
   td.title = t.alDaysTip(cal, work);
 }
 
+function moveGroupAmongPresent(cat, dir, present){
+  // swap with the neighbouring group that is actually shown, keeping hidden types in place
+  const other = present[present.indexOf(cat) + dir]; if(!other) return;
+  const order = normGroupOrder(); const i = order.indexOf(cat), j = order.indexOf(other);
+  [order[i], order[j]] = [order[j], order[i]];
+  state.groupOrder = order; saveToStorage(true); renderCurrentView();
+}
 function clearDropMarks(){ document.querySelectorAll('#staffTbody tr.drop-before, #staffTbody tr.drop-after').forEach(r=>r.classList.remove('drop-before','drop-after')); }
 
 function moveStaff(fromId, toId, before){
@@ -1428,7 +1591,7 @@ function renderCodesPanel(){
   getQuickCodes().forEach(c=>{
     const v = CODES[c];
     const b = document.createElement('button'); b.type='button'; b.className='code-chip';
-    b.innerHTML = `<b>${c}</b><span>${codeLabel(c)}</span><small>${v.h}${LANG==='ar'?'س':'h'}</small>`;
+    b.innerHTML = `<b>${c}</b><span>${codeLabel(c)}</span><small>${codeHours(c, state.currentPeriod)}${LANG==='ar'?'س':'h'}</small>`;
     b.onmousedown = e=> e.preventDefault();          // keep focus in the rota cell
     b.onclick = ()=> codeChipClick(c);
     quick.appendChild(b);
@@ -1441,7 +1604,7 @@ function renderCodesPanel(){
     const entries = Object.entries(CODES).filter(([k,v])=>v.c===cat);
     if(!entries.length) return;
     const div = document.createElement('div'); div.className='cat';
-    const rows = entries.map(([k,v])=>`<tr data-code="${k}" style="cursor:pointer"><td class="code">${k}</td><td>${LANG==='ar'?v.ar:v.en}</td><td class="hrs">${v.h}${LANG==='ar'?'س':'h'}</td></tr>`).join('');
+    const rows = entries.map(([k,v])=>`<tr data-code="${k}" style="cursor:pointer"><td class="code">${k}</td><td>${LANG==='ar'?v.ar:v.en}</td><td class="hrs">${codeHours(k, state.currentPeriod)}${LANG==='ar'?'س':'h'}</td></tr>`).join('');
     div.innerHTML = `<h3>${t.catNames[cat]}</h3><table>${rows}</table>`;
     div.querySelectorAll('tr[data-code]').forEach(tr=>{ tr.onmousedown = e=>e.preventDefault(); tr.onclick = ()=> codeChipClick(tr.dataset.code); });
     grid.appendChild(div);
@@ -1520,7 +1683,7 @@ function renderPeriod(n){
 
     const tdOff = document.createElement('td');
     tdOff.className = `day-col-off ${isFri?'td-fri':''} ${isSat?'td-sat':''} ${isHol?'td-hol':''} ${isRam?'td-ram':''}`;
-    const target = (isFri||isSat) ? 0 : stdHours;
+    const target = newRules(n) ? periodReq(n)[i] : ((isFri||isSat) ? 0 : stdHours);
     tdOff.textContent = target; totReq += target;
     officialHoursRow.insertBefore(tdOff, refColOff);
   }
@@ -1529,7 +1692,19 @@ function renderPeriod(n){
   const tbody = document.getElementById('rotaBody');
   tbody.innerHTML = '';
   const activeStaff = p.staff.filter(s=>s.active);
-  activeStaff.forEach((st, idx)=> tbody.appendChild(buildStaffRow(n, st, start, idx, dayOcc)));
+  const shown = displayStaff(activeStaff);
+  const withHeads = groupsShown(shown);
+  let lastCat = null;
+  shown.forEach((it, dIdx)=>{
+    if(withHeads && it.cat !== lastCat){
+      lastCat = it.cat;
+      const h = document.createElement('tr'); h.className = 'grp-head ' + catClass(it.cat); h.dataset.cat = it.cat;
+      const td = document.createElement('td'); td.colSpan = 4 + ROSTER_DAYS + 9;
+      td.textContent = `${t.cats[it.cat]} (${shown.filter(x=>x.cat===it.cat).length})`;
+      h.appendChild(td); tbody.appendChild(h);
+    }
+    tbody.appendChild(buildStaffRow(n, it.st, start, dIdx, dayOcc));
+  });
   calculateAllRows(n);
 
   // Ramadan badge next to the Ramadan checkbox
@@ -1585,6 +1760,7 @@ function buildStaffRow(periodN, staffMeta, periodStart, idx, dayOcc){
   inpName.dir = 'auto';
   inpName.placeholder = t.namePlaceholder(idx+1);
   inpName.disabled = true;
+  inpName.title = staffMeta.name || ''; tdName.title = staffMeta.name || '';
   tdName.appendChild(inpName); tr.appendChild(tint(tdName));
 
   for(let i=0;i<ROSTER_DAYS;i++){
@@ -1601,7 +1777,7 @@ function buildStaffRow(periodN, staffMeta, periodStart, idx, dayOcc){
     inp.value = (rec && rec.duties[i]) ? rec.duties[i] : '';
     if(onAl){ inp.placeholder = 'AL'; inp.title = t.alCellTip; }
     const info = CODES[inp.value.trim()];
-    if(info) inp.title = (LANG==='ar'?info.ar:info.en) + ' · ' + info.h + (LANG==='ar'?'س':'h');
+    if(info) inp.title = (LANG==='ar'?info.ar:info.en) + ' · ' + codeHours(inp.value.trim(), periodN) + (LANG==='ar'?'س':'h');
     inp.onfocus = ()=>{ lastFocusedCell = inp; if(!extendingSel) selAnchor = { r: idx, d: i }; };
     inp.oninput = ()=>{
       inp.value = inp.value.toUpperCase();
@@ -1609,7 +1785,7 @@ function buildStaffRow(periodN, staffMeta, periodStart, idx, dayOcc){
       const cur = inp.value.trim();
       if(rec) rec.duties[i] = inp.value;
       const info2 = CODES[cur];
-      inp.title = info2 ? (LANG==='ar'?info2.ar:info2.en) + ' · ' + info2.h + (LANG==='ar'?'س':'h') : (cur ? t.unknownCode : '');
+      inp.title = info2 ? (LANG==='ar'?info2.ar:info2.en) + ' · ' + codeHours(cur, periodN) + (LANG==='ar'?'س':'h') : (cur ? t.unknownCode : '');
       highlightCell(inp, td);
       if(EXIT_CODES.has(cur) || EXIT_CODES.has(prev)) propagateExit(staffMeta.id);
       calculateRow(periodN, tr, staffMeta.id);
@@ -1664,7 +1840,8 @@ function calculateRow(periodN, tr, staffId, forceOldPoRefresh){
   const p = state.periods[periodN];
   const rec = p.duty[staffId];
   if(!rec) return;
-  const w = periodWork(p, rec);
+  const st = p.staff.find(s => s.id === staffId) || { id: staffId };
+  const w = periodWork(p, rec, periodN, st);
   const po = getPoBalance(periodN, staffId);
   const t = TEXT[LANG];
 
@@ -1688,33 +1865,59 @@ function calculateRow(periodN, tr, staffId, forceOldPoRefresh){
   const finalCell = tr.querySelector('.cell-final-po');
   finalCell.textContent = po.final.toFixed(1);
   finalCell.classList.toggle('val-neg', po.final < 0);
-  finalCell.title = `${po.opening} + ${po.earned} − ${po.used} = ${po.final}`;
+  finalCell.title = `${po.opening} + ${po.earned} − ${po.used} = ${po.final}` + (w.incomplete ? '\n' + t.incompleteTip(w.blanks) : '');
+  usedCell.classList.toggle('val-incomplete', !!w.incomplete);
+  usedCell.title = w.incomplete ? t.incompleteTip(w.blanks) : '';
+  tr.querySelector('.cell-hrs-due').title = w.legacy ? '' : t.dueTip;
 }
 
 function calculateAllRows(periodN){
-  document.querySelectorAll('#rotaBody tr').forEach(tr=>{
+  document.querySelectorAll('#rotaBody tr[data-id]').forEach(tr=>{
     calculateRow(periodN, tr, parseInt(tr.dataset.id,10), true);
   });
   calculateShiftStats(periodN);
 }
 
 function calculateShiftStats(periodN){
-  const counts = { M:new Array(ROSTER_DAYS).fill(0), A:new Array(ROSTER_DAYS).fill(0), E:new Array(ROSTER_DAYS).fill(0), N:new Array(ROSTER_DAYS).fill(0) };
-  state.periods[periodN].staff.filter(s=>s.active).forEach(st=>{
+  const t = TEXT[LANG];
+  const mk = ()=> new Array(ROSTER_DAYS).fill(0);
+  const counts = { M:mk(), A:mk(), E:mk(), N:mk() };
+  const byCat = {};   // byCat[cat][g][day]
+  const active = state.periods[periodN].staff.filter(s=>s.active);
+  active.forEach(st=>{
     const rec = state.periods[periodN].duty[st.id];
     if(!rec) return;
+    let cat = staffCat(st); if(!STAFF_CATS.includes(cat)) cat = 'other';
+    if(!byCat[cat]) byCat[cat] = { M:mk(), A:mk(), E:mk(), N:mk() };
     rec.duties.forEach((code, day)=>{
       code = (code||'').trim();
       if(!code) return;
-      Object.keys(SHIFT_GROUPS).forEach(g=>{ if(SHIFT_GROUPS[g].includes(code)) counts[g][day]++; });
+      Object.keys(SHIFT_GROUPS).forEach(g=>{ if(SHIFT_GROUPS[g].includes(code)){ counts[g][day]++; byCat[cat][g][day]++; } });
     });
   });
-  renderStatFooter('shiftCountsM', counts.M);
-  renderStatFooter('shiftCountsA', counts.A);
-  renderStatFooter('shiftCountsE', counts.E);
-  renderStatFooter('shiftCountsN', counts.N);
+  document.querySelectorAll('#rotaTable tr.shift-sub').forEach(r=>r.remove());
+  const cats = normGroupOrder().filter(c=>byCat[c]);
+  const split = cats.length > 1;
+  [['M','shiftCountsM'],['A','shiftCountsA'],['E','shiftCountsE'],['N','shiftCountsN']].forEach(([g,id])=>{
+    renderStatFooter(id, counts[g]);
+    if(!split) return;
+    const totalRow = document.getElementById(id);
+    let after = totalRow;
+    cats.forEach(c=>{
+      const vals = byCat[c][g];
+      if(!vals.some(v=>v>0)) return;
+      const tr = document.createElement('tr'); tr.className = 'shift-sub';
+      tr.style.background = totalRow.style.background;
+      const lab = document.createElement('td'); lab.colSpan = 4; lab.className = 'shift-sub-label';
+      const sw = document.createElement('span'); sw.className = 'sw ' + catClass(c); lab.appendChild(sw);
+      lab.appendChild(document.createTextNode(t.cats[c]));
+      tr.appendChild(lab);
+      vals.forEach(v=>{ const td = document.createElement('td'); td.textContent = v>0 ? v : '-'; tr.appendChild(td); });
+      const tail = document.createElement('td'); tail.colSpan = 8; tr.appendChild(tail);
+      after.after(tr); after = tr;
+    });
+  });
 }
-
 function renderStatFooter(rowId, totals){
   const tr = document.getElementById(rowId);
   while(tr.children.length > 2) tr.removeChild(tr.children[1]);
@@ -1748,8 +1951,14 @@ function renderSummary(){
   for(let n=1;n<=NUM_PERIODS;n++) head += `<th>${t.period} ${n}</th>`;
   head += `<th>${LANG==='ar'?'إجمالي السنة':'Year Total'}</th></tr></thead>`;
 
+  // group by staff type (same order as the rota)
+  const items = displayStaff(order.map(id=>{ const m = masterOf(id); return m || { id }; }));
+  const heads = groupsShown(items);
+  let lastCat = null;
   let body = '<tbody>';
-  order.forEach((id, i)=>{
+  items.forEach((it, i)=>{
+    const id = it.st.id;
+    if(heads && it.cat !== lastCat){ lastCat = it.cat; body += `<tr class="grp-head ${catClass(it.cat)}"><td colspan="${NUM_PERIODS+2}">${t.cats[it.cat]}</td></tr>`; }
     let yearTotal = 0;
     let row = '';
     for(let n=1;n<=NUM_PERIODS;n++){
@@ -1759,7 +1968,7 @@ function renderSummary(){
       if(p && inPeriod){
         const rec = p.duty[id];
         worked = 0;
-        if(rec) rec.duties.forEach(code=>{ code=(code||'').trim(); if(code && SHIFT_HOURS.hasOwnProperty(code)) worked += SHIFT_HOURS[code]; });
+        if(rec) rec.duties.forEach(code=>{ code=(code||'').trim(); if(code && CODES[code]) worked += codeHours(code, n); });
         yearTotal += worked;
       }
       row += `<td>${worked===null ? '' : worked}</td>`;
@@ -1780,7 +1989,8 @@ function resetAllData(){
     lang: LANG,
     gov: 'Dhofar / ظفار', wilayatKey: 'salalah', instKey: DHOFAR_INSTITUTIONS.salalah[0].en, instCustom:'',
     dept: 'LR', globalStartDate: defaultStartDate(), nextStaffId: 1, masterStaff: [], viewMasterMode: false,
-    periods: {}, currentPeriod: 1, viewingTab: 'period', holidayOverrides: {}, customEvents: []
+    periods: {}, currentPeriod: 1, viewingTab: 'period', holidayOverrides: {}, customEvents: [],
+    groupRows: true, groupOrder: ['nurse','school','midwife','orderly','other']
   };
   init(true);
 }
@@ -1794,8 +2004,9 @@ function exportCSV(){
   csv += 'S.N,DES,St.No,NAME,';
   for(let i=1;i<=ROSTER_DAYS;i++) csv += `Day ${i},`;
   csv += 'Worked Hrs,Worked Days,Due Hrs,Normal OT,Ramadan OT,Total OT,Old PO,PO Used,Final PO\n';
-  document.querySelectorAll('#rotaBody tr').forEach((tr,idx)=>{
-    const st = activeStaff[idx];
+  document.querySelectorAll('#rotaBody tr[data-id]').forEach((tr,idx)=>{
+    const st = activeStaff.find(s => s.id === parseInt(tr.dataset.id,10));
+    if(!st) return;
     const rec = p.duty[st.id];
     csv += `${idx+1},${st.des},${st.stno},"${st.name}",`;
     const ps = periodStartDate(n);
@@ -1818,27 +2029,52 @@ function exportCSV(){
 }
 
 function exportJSON(){
-  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const data = Object.assign({}, state, { backupSavedAt: new Date().toISOString() });
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `Duty_Rota_Backup.json`;
+  const inst = (currentInstName() || 'Rota').replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_').slice(0,40);
+  const dept = (state.dept || '').replace(/[\\/:*?"<>|]+/g,'').replace(/\s+/g,'_').slice(0,20);
+  link.download = `Duty_Rota_${inst}${dept?'_'+dept:''}_${ymd(new Date())}.json`;
   link.click();
 }
+function looksLikeBackup(d){
+  return !!d && typeof d === 'object' && !Array.isArray(d) && d.periods && typeof d.periods === 'object'
+    && (Array.isArray(d.masterStaff) || d.masterStaff === undefined) && (d.globalStartDate === undefined || typeof d.globalStartDate === 'string');
+}
 function importJSON(evt){
-  const file = evt.target.files[0];
+  const input = evt.target;
+  const file = input.files[0];
   if(!file) return;
+  const t = TEXT[LANG];
   const reader = new FileReader();
   reader.onload = e=>{
-    try{
-      const data = JSON.parse(e.target.result);
-      state = data;
-      LANG = state.lang || 'ar';
-      init(true);
-    }catch(err){ alert('Invalid file'); }
+    let data = null;
+    try{ data = JSON.parse(e.target.result); }catch(err){ data = null; }
+    input.value = '';                       // allow choosing the same file again
+    if(!looksLikeBackup(data)){ alert(t.importBad); return; }
+    const when = data.backupSavedAt ? fmtDMY(ymd(new Date(data.backupSavedAt))) : '';
+    if(!confirm(t.importConfirm(file.name, when))) return;
+    delete data.backupSavedAt;
+    state = data;
+    LANG = state.lang || 'ar';
+    init(true);
+    saveToStorage(true);
+    showToast(TEXT[LANG].importDone);
   };
+  reader.onerror = ()=>{ input.value=''; alert(t.importBad); };
   reader.readAsText(file);
 }
-
+function openDeviceHelp(){
+  const t = TEXT[LANG];
+  document.getElementById('devTitle').textContent = t.devTitle;
+  document.getElementById('devBody').innerHTML = `<p style="margin-top:0;line-height:1.6">${t.devIntro}</p>
+    <ol style="line-height:1.7;padding-inline-start:20px">${t.devSteps.map(x=>`<li>${x}</li>`).join('')}</ol>
+    <p class="modal-note">${t.devTip}</p>
+    <button class="btn btn-success" onclick="exportJSON()">${t.devSaveNow}</button>`;
+  document.getElementById('devModal').classList.remove('hidden');
+}
+function closeDeviceHelp(){ document.getElementById('devModal').classList.add('hidden'); }
 function saveToStorage(silent){
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
   if(!silent) alert(TEXT[LANG].savedMsg);
@@ -1876,8 +2112,8 @@ document.addEventListener('keydown', (e)=>{
   let target = null;
   if(e.key==='ArrowRight') target = currentRow.querySelector(`input[data-day="${currentDay + (rtl?-1:1)}"]`);
   else if(e.key==='ArrowLeft') target = currentRow.querySelector(`input[data-day="${currentDay + (rtl?1:-1)}"]`);
-  else if(e.key==='ArrowDown'){ const nr=currentRow.nextElementSibling; if(nr) target = nr.querySelector(`input[data-day="${currentDay}"]`); }
-  else if(e.key==='ArrowUp'){ const pr=currentRow.previousElementSibling; if(pr) target = pr.querySelector(`input[data-day="${currentDay}"]`); }
+  else if(e.key==='ArrowDown'){ let nr=currentRow.nextElementSibling; while(nr && !nr.dataset.id) nr = nr.nextElementSibling; if(nr) target = nr.querySelector(`input[data-day="${currentDay}"]`); }
+  else if(e.key==='ArrowUp'){ let pr=currentRow.previousElementSibling; while(pr && !pr.dataset.id) pr = pr.previousElementSibling; if(pr) target = pr.querySelector(`input[data-day="${currentDay}"]`); }
   if(!target) return;
   e.preventDefault();
   if(e.shiftKey){
@@ -1895,7 +2131,7 @@ document.addEventListener('keydown', (e)=>{
 let SEL = new Set(), selAnchor = null, selDrag = null, selPeriod = null, extendingSel = false;
 let lastBulk = null, lastFocusedCell = null;
 
-function rotaRows(){ return [...document.querySelectorAll('#rotaBody tr')]; }
+function rotaRows(){ return [...document.querySelectorAll('#rotaBody tr[data-id]')]; }
 function cellPos(td){ return { r: rotaRows().indexOf(td.parentElement), d: parseInt(td.dataset.day,10) }; }
 function rectKeys(a, b){
   const rows = rotaRows(), keys = [];
@@ -1921,6 +2157,9 @@ function updateSelBar(){
   document.getElementById('selCount').textContent = t.selCount(SEL.size);
   document.getElementById('selApply').textContent = t.selApply;
   document.getElementById('selClearCells').textContent = t.selClear;
+  document.getElementById('selCopy').textContent = t.selCopy;
+  document.getElementById('selPaste').textContent = t.selPaste;
+  document.getElementById('selPaste').disabled = !rotaClip;
   document.getElementById('selUndo').textContent = t.selUndo;
   document.getElementById('selUndo').classList.toggle('hidden', !(lastBulk && lastBulk.period===state.currentPeriod));
   document.getElementById('selCode').placeholder = t.selPlaceholder;
@@ -1946,23 +2185,114 @@ function applySelCode(){ applySelValue(document.getElementById('selCode').value)
 function applySelValue(code){
   code = (code||'').trim().toUpperCase();
   if(code && !CODES[code]){ const box=document.getElementById('selCode'); box.value=code; validateSelCode(); box.focus(); return; }
+  applyCells([...SEL].map(k=>{ const [id, day] = k.split('|').map(Number); return { id, day, code }; }));
+  const box = document.getElementById('selCode'); box.value=''; box.classList.remove('bad');
+}
+/* Write a list of {id, day, code} changes in one undoable step */
+function applyCells(changes, selectKeys){
   const n = state.currentPeriod, p = state.periods[n];
   const undo = [], exitIds = new Set();
-  SEL.forEach(k=>{
-    const [id, day] = k.split('|').map(Number);
+  changes.forEach(({id, day, code})=>{
     const rec = p.duty[id]; if(!rec) return;
     const prev = rec.duties[day] || '';
     undo.push({ id, day, prev });
     rec.duties[day] = code;
     if(EXIT_CODES.has(prev.trim()) || EXIT_CODES.has(code)) exitIds.add(id);
   });
+  if(!undo.length) return;
   exitIds.forEach(id=> propagateExit(id));
   lastBulk = { period:n, undo };
   saveToStorage(true);
+  if(selectKeys) SEL = new Set(selectKeys);
   selPeriod = n;
   renderPeriod(n);
-  const box = document.getElementById('selCode'); box.value=''; box.classList.remove('bad');
 }
+
+/* ---------- Copy / paste of shift patterns ---------- */
+let rotaClip = null;   // last copied block (array of rows of codes), also used by the bar buttons
+function selBounds(){
+  if(!SEL.size) return null;
+  const rows = rotaRows(); const idxOf = {}; rows.forEach((tr,i)=> idxOf[tr.dataset.id] = i);
+  let r0=1e9, r1=-1, d0=1e9, d1=-1;
+  SEL.forEach(k=>{ const [id, d] = k.split('|'); const r = idxOf[id]; if(r===undefined) return; d0=Math.min(d0,+d); d1=Math.max(d1,+d); r0=Math.min(r0,r); r1=Math.max(r1,r); });
+  return r1 < 0 ? null : { r0, r1, d0, d1, rows };
+}
+function selectionMatrix(){
+  const b = selBounds(); if(!b) return null;
+  const p = state.periods[state.currentPeriod]; const m = [];
+  for(let r=b.r0;r<=b.r1;r++){
+    const id = parseInt(b.rows[r].dataset.id,10); const rec = p.duty[id]; const line = [];
+    for(let d=b.d0; d<=b.d1; d++) line.push(SEL.has(id+'|'+d) && rec ? (rec.duties[d]||'') : '');
+    m.push(line);
+  }
+  return m;
+}
+function parseClip(text){
+  let lines = String(text||'').replace(/\r/g,'').split('\n');
+  while(lines.length && !lines[lines.length-1].trim()) lines.pop();
+  if(!lines.length) return null;
+  const hasTab = lines.some(l=>l.includes('\t'));
+  return lines.map(l=> (hasTab ? l.split('\t') : l.trim().split(/[\s,;]+/)).map(x=>x.trim().toUpperCase()));
+}
+function copySelection(){
+  const m = selectionMatrix(); if(!m) return null;
+  rotaClip = m;
+  return m.map(r=>r.join('\t')).join('\n');
+}
+function pasteMatrix(m){
+  if(!m || !m.length || !m[0].length) return;
+  const rows = rotaRows(); const changes = [], keys = []; let skipped = 0;
+  const put = (r, d, code)=>{
+    const tr = rows[r]; if(!tr || d<0 || d>=ROSTER_DAYS) return;
+    const id = parseInt(tr.dataset.id,10);
+    if(code && !CODES[code]){ skipped++; return; }
+    changes.push({ id, day:d, code }); keys.push(id+'|'+d);
+  };
+  const h = m.length, w = Math.max(...m.map(r=>r.length));
+  if(SEL.size > 1){
+    // fill the selection, repeating the copied pattern across it
+    const b = selBounds(); if(!b) return;
+    for(let r=b.r0;r<=b.r1;r++) for(let d=b.d0; d<=b.d1; d++){
+      const id = rows[r].dataset.id; if(!SEL.has(id+'|'+d)) continue;
+      const line = m[(r-b.r0) % h]; put(r, d, (line[(d-b.d0) % w] ?? '').trim());
+    }
+  } else {
+    // paste the block starting at the focused cell (clipped to the rota)
+    const a = document.activeElement;
+    const td = a && a.closest ? a.closest('#rotaBody td.duty-cell') : null;
+    const start = td ? cellPos(td) : selAnchor; if(!start) return;
+    m.forEach((line, i)=> line.forEach((code, j)=> put(start.r + i, start.d + j, code)));
+  }
+  applyCells(changes, keys.length > 1 ? keys : null);
+  if(skipped) showToast(TEXT[LANG].pasteSkipped(skipped));
+}
+function showToast(msg){
+  let el = document.getElementById('rotaToast');
+  if(!el){ el = document.createElement('div'); el.id = 'rotaToast'; el.className = 'rota-toast no-print'; document.body.appendChild(el); }
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(showToast._t); showToast._t = setTimeout(()=> el.classList.remove('show'), 3500);
+}
+function barCopy(){ const txt = copySelection(); if(txt===null) return; try{ navigator.clipboard && navigator.clipboard.writeText(txt).catch(()=>{}); }catch(e){} showToast(TEXT[LANG].copiedMsg(rotaClip.length, rotaClip[0].length)); }
+function barPaste(){ if(rotaClip) pasteMatrix(rotaClip); }
+document.addEventListener('copy', e=>{
+  if(SEL.size <= 1) return;
+  const a = document.activeElement;
+  if(a && a.closest && !a.closest('#rotaBody') && a.id !== 'selCode') return;
+  const txt = copySelection(); if(txt===null) return;
+  e.clipboardData.setData('text/plain', txt); e.preventDefault();
+});
+document.addEventListener('paste', e=>{
+  const a = document.activeElement;
+  const inDuty = !!(a && a.closest && a.closest('#rotaBody td.duty-cell'));
+  const ok = inDuty || (SEL.size > 1 && a && (a.id === 'selCode' || a === document.body));
+  if(!ok) return;
+  const m = parseClip(e.clipboardData.getData('text/plain'));
+  if(!m) return;
+  const single = m.length === 1 && m[0].length === 1;
+  if(single && SEL.size <= 1) return;          // normal typing-style paste into one cell
+  e.preventDefault();
+  pasteMatrix(m);
+});
 function undoBulk(){
   if(!lastBulk) return;
   const p = state.periods[lastBulk.period];
@@ -2093,7 +2423,7 @@ function hijriYearOf(date){
 }
 
 const _evCache = {};
-function invalidateEvents(){ Object.keys(_evCache).forEach(k=> delete _evCache[k]); }
+function invalidateEvents(){ Object.keys(_evCache).forEach(k=> delete _evCache[k]); clearReqCache(); }
 function eventsForYear(Y){
   if(_evCache[Y]) return _evCache[Y];
   const out = [];
@@ -2246,7 +2576,7 @@ function renderHolidays(){
   };
   const fl = body.querySelector('tr.flash'); if(fl) fl.scrollIntoView({block:'nearest'});
 }
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && !document.getElementById('holModal').classList.contains('hidden')) closeHolidays(); });
+document.addEventListener('keydown', e=>{ if(e.key!=='Escape') return; if(!document.getElementById('holModal').classList.contains('hidden')) closeHolidays(); if(!document.getElementById('devModal').classList.contains('hidden')) closeDeviceHelp(); });
 
 /* ================= INIT ================= */
 /* Migrate data saved by older versions: the old per-period "oldPo" numbers were typed by hand and
@@ -2283,6 +2613,8 @@ function init(skipLoad){
   state.viewMasterMode = false;
   if(!state.holidayOverrides) state.holidayOverrides = {};
   if(!state.customEvents) state.customEvents = [];
+  if(state.groupRows === undefined) state.groupRows = false;   // existing data: keep the old layout until switched on
+  state.groupOrder = normGroupOrder();
   invalidateEvents();
   migrateOldPo();
   // Always open on today's period
