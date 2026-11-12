@@ -721,7 +721,7 @@ const SHIFT_HOURS = {}; Object.keys(CODES).forEach(k=> SHIFT_HOURS[k] = (CODES[k
 const NUM_PERIODS = 13;
 const ROSTER_DAYS = 28;
 const STORE_KEY = 'SmartDutyRota_v22_Data';
-const PO_CODE = 'PO';   // each PO code in the table = 1 day deducted from the staff's PO balance
+const PO_CODE = 'PO';   // legacy periods: each PO = 1 day deducted. From RULES_FROM on, PO is a label and the shortfall is deducted instead
 
 const EXIT_CODES = new Set(Object.keys(CODES).filter(k=>CODES[k].c==='Exit'));
 /* Which shift rows (footer counts) each code is counted in. Combined codes count in each shift they cover. */
@@ -775,7 +775,7 @@ function syncUnlockedPeriodStaff(n){
 
   p.staff = state.masterStaff.map(m => {
     const isActive = (p.activeMap && p.activeMap[m.id] !== undefined) ? p.activeMap[m.id] : true;
-    return { id: m.id, des: m.des, stno: m.stno, name: m.name, cat: m.cat||'nurse', alStart: m.alStart||'', alReturn: m.alReturn||'', active: isActive };
+    return { id: m.id, des: m.des, stno: m.stno, name: m.name, cat: m.cat||'nurse', alStart: m.alStart||'', alReturn: m.alReturn||'', alHistory: m.alHistory, active: isActive };
   });
 
   if(p.snapshots){
@@ -809,7 +809,22 @@ function addDaysYmd(str, n){ const d = parseYmd(str); d.setDate(d.getDate()+n); 
 function daysBetween(a, b){ return Math.round((parseYmd(b) - parseYmd(a)) / 86400000); }
 function fmtDM(str){ const [y,m,d]=str.split('-'); return d+'/'+m; }
 function fmtDMY(str){ const [y,m,d]=str.split('-'); return d+'/'+m+'/'+y; }
-function isOnLeave(st, dateStr){ const L = staffLeave(st); return !!(L.s && L.r && L.s <= dateStr && dateStr < L.r); }
+function isOnLeave(st, dateStr){
+  const L = staffLeave(st);
+  if(L.s && L.r && L.s <= dateStr && dateStr < L.r) return true;
+  const m = masterOf(st.id) || st;   // earlier leave ranges kept for days that have already passed
+  return (m.alHistory || []).some(h=> h.s <= dateStr && dateStr < h.r);
+}
+/* Before a planned AL range is changed or cleared, remember the part that has already passed,
+   so balances of past days never change because the next leave was entered. */
+function archivePastLeave(m){
+  if(!m || !m.alStart || !m.alReturn || m.alStart >= m.alReturn) return;
+  const today = ymd(new Date());
+  if(m.alStart >= today) return;
+  const r = m.alReturn < today ? m.alReturn : today;
+  if(!m.alHistory) m.alHistory = [];
+  if(!m.alHistory.some(h=>h.s===m.alStart && h.r===r)) m.alHistory.push({ s: m.alStart, r });
+}
 function catClass(cat){ return (cat && cat!=='nurse') ? 'cat-'+cat : ''; }
 const STAFF_CATS = ['nurse','school','orderly','midwife','other'];
 /* ---- Grouping by staff type (display only: never rewrites p.staff / p.order / masterStaff) ---- */
@@ -909,6 +924,7 @@ function propagateExit(id){
    Nothing is stored except the optional manual override, so changing any earlier period
    automatically updates every later period.
 */
+function escHtml(x){ return String(x==null?'':x).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function round2(x){ return Math.round((x + Number.EPSILON) * 100) / 100; }
 
 /* ---- Rules engine ----
@@ -994,7 +1010,7 @@ function periodWork(p, rec, n, st){
     if(v && (EXCUSED_CATS.has(v.c) || (v.c === 'Other Institutions' && hrs === 0))) excused = true;
     if(!code && st){ const d = new Date(start); d.setDate(start.getDate()+i); if(isOnLeave(st, ymd(d))) excused = true; }
     if(!excused) dueHours += req[i];
-    if(!code && !excused && req[i] > 0) blanks++;
+    if((!code || !v) && !excused && req[i] > 0) blanks++;
   }
   const net = workedHours - dueHours;
   const ot = Math.max(0, net);
@@ -1397,7 +1413,7 @@ function renderStaffPanel(){
   const order = normGroupOrder();
   const presentCats = order.filter(c=> shownP.some(x=>x.cat===c));
   let lastCatP = null;
-  shownP.forEach(({ st, idx, cat: gcat })=>{
+  shownP.forEach(({ st, idx, cat: gcat }, dispIdx)=>{
     if(headsP && gcat !== lastCatP){
       lastCatP = gcat;
       const h = document.createElement('tr'); h.className = 'grp-head ' + catClass(gcat); h.dataset.cat = gcat;
@@ -1445,7 +1461,7 @@ function renderStaffPanel(){
     cb.onchange = ()=> toggleStaffActive(idx, cb.checked);
     tdActive.appendChild(cb); tr.appendChild(tdActive);
 
-    const tdSn = document.createElement('td'); tdSn.style.textAlign='center'; tdSn.textContent = idx+1; tr.appendChild(tdSn);
+    const tdSn = document.createElement('td'); tdSn.style.textAlign='center'; tdSn.textContent = dispIdx+1; tr.appendChild(tdSn);
 
     const tdCat = document.createElement('td');
     const selCat = document.createElement('select'); selCat.disabled = locked;
@@ -1481,8 +1497,9 @@ function renderStaffPanel(){
     tr.appendChild(tdAlD);
     const onLeaveChange = ()=>{
       const m = masterOf(st.id) || st;
+      archivePastLeave(m);
       m.alStart = inpAlS.value; m.alReturn = inpAlR.value;
-      if(m !== st){ st.alStart = inpAlS.value; st.alReturn = inpAlR.value; }
+      if(m !== st){ st.alStart = inpAlS.value; st.alReturn = inpAlR.value; st.alHistory = m.alHistory; }
       for(let n=1;n<=NUM_PERIODS;n++){ const pp=state.periods[n]; if(pp && !pp.locked) syncUnlockedPeriodStaff(n); }
       if(inpAlS.value && !inpAlR.value){ inpAlR.min = addDaysYmd(inpAlS.value,1); }
       saveToStorage(true);
@@ -1974,7 +1991,7 @@ function renderSummary(){
       row += `<td>${worked===null ? '' : worked}</td>`;
     }
     const name = known[id] || t.namePlaceholder(i+1);
-    body += `<tr><td class="name-cell" dir="auto">${name}</td>${row}<td class="total-cell">${yearTotal}</td></tr>`;
+    body += `<tr><td class="name-cell" dir="auto">${escHtml(name)}</td>${row}<td class="total-cell">${yearTotal}</td></tr>`;
   });
   body += '</tbody>';
   table.innerHTML = head+body;
@@ -2039,7 +2056,8 @@ function exportJSON(){
   link.click();
 }
 function looksLikeBackup(d){
-  return !!d && typeof d === 'object' && !Array.isArray(d) && d.periods && typeof d.periods === 'object'
+  return !!d && typeof d === 'object' && !Array.isArray(d) && d.periods && typeof d.periods === 'object' && !Array.isArray(d.periods)
+    && Object.values(d.periods).every(p=> p && typeof p === 'object' && !Array.isArray(p))
     && (Array.isArray(d.masterStaff) || d.masterStaff === undefined) && (d.globalStartDate === undefined || typeof d.globalStartDate === 'string');
 }
 function importJSON(evt){
@@ -2056,9 +2074,16 @@ function importJSON(evt){
     const when = data.backupSavedAt ? fmtDMY(ymd(new Date(data.backupSavedAt))) : '';
     if(!confirm(t.importConfirm(file.name, when))) return;
     delete data.backupSavedAt;
-    state = data;
-    LANG = state.lang || 'ar';
-    init(true);
+    if(data.lang !== 'en' && data.lang !== 'ar') data.lang = 'ar';
+    const prevState = state, prevLang = LANG;
+    try{
+      state = data; LANG = state.lang;
+      lastBulk = null; SEL = new Set();
+      init(true);
+    }catch(err){
+      state = prevState; LANG = prevLang; init(true);
+      alert(t.importBad); return;
+    }
     saveToStorage(true);
     showToast(TEXT[LANG].importDone);
   };
@@ -2277,7 +2302,7 @@ function barPaste(){ if(rotaClip) pasteMatrix(rotaClip); }
 document.addEventListener('copy', e=>{
   if(SEL.size <= 1) return;
   const a = document.activeElement;
-  if(a && a.closest && !a.closest('#rotaBody') && a.id !== 'selCode') return;
+  if(a && a !== document.body && a.closest && !a.closest('#rotaBody') && a.id !== 'selCode') return;
   const txt = copySelection(); if(txt===null) return;
   e.clipboardData.setData('text/plain', txt); e.preventDefault();
 });
@@ -2479,7 +2504,7 @@ function showOccTip(th, ds, occ){
   tip.innerHTML = `<div style="font-weight:700;margin-bottom:4px;">${fmtDMY(ds)}</div>` + occ.map(e=>{
     const dot = e.kind==='holiday' ? '#00838f' : '#689f38';
     const range = e.days>1 ? `${fmtDM(e.start)} – ${fmtDM(addDaysYmd(e.end,-1))}` : fmtDM(e.start);
-    return `<div class="occ-row"><span class="kind-dot" style="background:${dot}"></span><b>${occName(e)}</b> · ${range}<div class="occ-src">${e.kind==='holiday'?t.kindHoliday:t.kindObservance} · ${srcLabel(e.src)}</div></div>`;
+    return `<div class="occ-row"><span class="kind-dot" style="background:${dot}"></span><b>${escHtml(occName(e))}</b> · ${escHtml(range)}<div class="occ-src">${e.kind==='holiday'?t.kindHoliday:t.kindObservance} · ${srcLabel(e.src)}</div></div>`;
   }).join('') + `<div class="occ-edit">✎ ${t.holClickEdit}</div>`;
   tip.classList.remove('hidden');
   const r = th.getBoundingClientRect(), w = tip.offsetWidth;
@@ -2517,22 +2542,22 @@ function renderHolidays(){
   evs.forEach(e=>{
     const dot = e.kind==='holiday' ? '#b2ebf2' : '#dcedc8';
     const nameCell = e.custom
-      ? `<input type="text" dir="auto" data-act="cname" data-key="${e.key}" value="${esc(e.en)}" style="width:100%">`
+      ? `<input type="text" dir="auto" data-act="cname" data-key="${esc(e.key)}" value="${esc(e.en)}" style="width:100%">`
       : `<span class="kind-dot" style="background:${dot}"></span>${esc(occName(e))}${e.hidden?` <i style="color:#90a4ae">${t.holHidden}</i>`:''}`;
     const kindCell = e.custom
-      ? `<select data-act="ckind" data-key="${e.key}"><option value="holiday"${e.kind==='holiday'?' selected':''}>${t.kindHoliday}</option><option value="observance"${e.kind==='observance'?' selected':''}>${t.kindObservance}</option></select>`
+      ? `<select data-act="ckind" data-key="${esc(e.key)}"><option value="holiday"${e.kind==='holiday'?' selected':''}>${t.kindHoliday}</option><option value="observance"${e.kind==='observance'?' selected':''}>${t.kindObservance}</option></select>`
       : (e.kind==='holiday' ? t.kindHoliday : t.kindObservance);
     const ov = (state.holidayOverrides||{})[e.key];
     let actions = '';
-    if(e.custom) actions = `<button class="btn btn-sm btn-danger" data-act="cdel" data-key="${e.key}">${t.holDelete}</button>`;
+    if(e.custom) actions = `<button class="btn btn-sm btn-danger" data-act="cdel" data-key="${esc(e.key)}">${t.holDelete}</button>`;
     else {
-      if(ov && (ov.start || ov.days)) actions += `<button class="btn btn-sm btn-outline" data-act="reset" data-key="${e.key}">${t.holReset}</button> `;
-      actions += `<button class="btn btn-sm btn-outline" data-act="hide" data-key="${e.key}">${e.hidden ? t.holShow : t.holHide}</button>`;
+      if(ov && (ov.start || ov.days)) actions += `<button class="btn btn-sm btn-outline" data-act="reset" data-key="${esc(e.key)}">${t.holReset}</button> `;
+      actions += `<button class="btn btn-sm btn-outline" data-act="hide" data-key="${esc(e.key)}">${e.hidden ? t.holShow : t.holHide}</button>`;
     }
     html += `<tr class="${e.key===holFlashKey?'flash':''}" style="${e.hidden?'opacity:.55':''}">
       <td>${nameCell}</td><td>${kindCell}</td>
-      <td><input type="date" data-act="start" data-key="${e.key}" value="${e.start}"></td>
-      <td><input type="number" min="1" max="40" data-act="days" data-key="${e.key}" value="${e.days}"></td>
+      <td><input type="date" data-act="start" data-key="${esc(e.key)}" value="${esc(e.start)}"></td>
+      <td><input type="number" min="1" max="40" data-act="days" data-key="${esc(e.key)}" value="${esc(e.days)}"></td>
       <td style="white-space:nowrap">${fmtDMY(addDaysYmd(e.end,-1))}</td>
       <td><span class="src-badge src-${e.src}">${srcLabel(e.src)}</span></td>
       <td style="white-space:nowrap">${actions}</td></tr>`;
